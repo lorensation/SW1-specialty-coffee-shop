@@ -1,0 +1,20 @@
+[
+  {
+    "id": "p1",
+    "name": "Café Etiopía",
+    "price": 8.5,
+    "category": "origen"
+  },
+  {
+    "id": "p2",
+    "name": "Cold Brew",
+    "price": 4.0,
+    "category": "bebidas-frias"
+  },
+  {
+    "id": "p3",
+    "name": "Cheesecake",
+    "price": 5.0,
+    "category": "postres"
+  }
+]

@@ -1,0 +1,8 @@
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,Segoe UI,Roboto,Arial}
+.nav{display:flex;gap:1rem;align-items:center;padding:0.75rem 1rem;border-bottom:1px solid #eee}
+.nav a{text-decoration:none;color:#333}
+.nav a.active{font-weight:700}
+.grow{flex:1}
+.container{max-width:960px;margin:1rem auto;padding:0 1rem}
+.footer{border-top:1px solid #eee;padding:1rem;text-align:center;color:#666}
