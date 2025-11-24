@@ -4,11 +4,66 @@ import { useAuth } from "../../context/AuthContext.jsx";
 export default function Account(){
   const { user, login, register, logout } = useAuth();
   const [dark, setDark] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
+  const [showRegister, setShowRegister] = useState(false);
+  const [formData, setFormData] = useState({ name: "", email: "", password: "" });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   // Modo oscuro (si ya tenías este bloque, déjalo igual)
   useEffect(()=>{
     document.body.classList.toggle("theme-dark", dark);
   }, [dark]);
+
+  const handleInputChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setError("");
+  };
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    const result = await login(formData.email, formData.password);
+    
+    if (result.success) {
+      setShowLogin(false);
+      setFormData({ name: "", email: "", password: "" });
+    } else {
+      setError(result.error || "Error al iniciar sesión");
+    }
+    setLoading(false);
+  };
+
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    if (formData.password.length < 8) {
+      setError("La contraseña debe tener al menos 8 caracteres");
+      setLoading(false);
+      return;
+    }
+
+    const result = await register(formData.name, formData.email, formData.password);
+    
+    if (result.success) {
+      setShowRegister(false);
+      setFormData({ name: "", email: "", password: "" });
+    } else {
+      setError(result.error || "Error al registrarse");
+    }
+    setLoading(false);
+  };
+
+  const closeModals = () => {
+    setShowLogin(false);
+    setShowRegister(false);
+    setFormData({ name: "", email: "", password: "" });
+    setError("");
+  };
 
   const reservas = ["19/07/2025 – 2 pax", "20/08/2025 – 3 pax", "24/08/2025 – 2 pax"];
   const opiniones = [
@@ -38,8 +93,8 @@ export default function Account(){
         <div className="account-ctas">
           {!user ? (
             <>
-              <button className="btn btn-primary" onClick={login}>Iniciar sesión</button>
-              <button className="btn btn-outline" onClick={register}>Registrarse</button>
+              <button className="btn btn-primary" onClick={() => setShowLogin(true)}>Iniciar sesión</button>
+              <button className="btn btn-outline" onClick={() => setShowRegister(true)}>Registrarse</button>
             </>
           ) : (
             <button className="btn btn-outline" onClick={logout}>Cerrar sesión</button>
@@ -93,6 +148,180 @@ export default function Account(){
         <a href="/feed">Opiniones</a>
         <a href="/about">Equipo</a>
       </div>
+
+      {/* Login Modal */}
+      {showLogin && (
+        <div className="modal-overlay" onClick={closeModals}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={closeModals}>&times;</button>
+            <h2>Iniciar sesión</h2>
+            <form onSubmit={handleLogin}>
+              <div className="form-group">
+                <label htmlFor="login-email">Correo electrónico</label>
+                <input
+                  id="login-email"
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  required
+                  disabled={loading}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="login-password">Contraseña</label>
+                <input
+                  id="login-password"
+                  type="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  required
+                  disabled={loading}
+                />
+              </div>
+              {error && <div className="error-message">{error}</div>}
+              <button type="submit" className="btn btn-primary" disabled={loading}>
+                {loading ? "Iniciando sesión..." : "Iniciar sesión"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Register Modal */}
+      {showRegister && (
+        <div className="modal-overlay" onClick={closeModals}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={closeModals}>&times;</button>
+            <h2>Registrarse</h2>
+            <form onSubmit={handleRegister}>
+              <div className="form-group">
+                <label htmlFor="register-name">Nombre</label>
+                <input
+                  id="register-name"
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  required
+                  disabled={loading}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="register-email">Correo electrónico</label>
+                <input
+                  id="register-email"
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  required
+                  disabled={loading}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="register-password">Contraseña</label>
+                <input
+                  id="register-password"
+                  type="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  required
+                  minLength={8}
+                  disabled={loading}
+                />
+                <small>Mínimo 8 caracteres, debe incluir mayúsculas, minúsculas y números</small>
+              </div>
+              {error && <div className="error-message">{error}</div>}
+              <button type="submit" className="btn btn-primary" disabled={loading}>
+                {loading ? "Registrando..." : "Registrarse"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        .modal-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.7);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 1000;
+        }
+
+        .modal-content {
+          background: var(--background, white);
+          padding: 2rem;
+          border-radius: 8px;
+          max-width: 400px;
+          width: 90%;
+          position: relative;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-close {
+          position: absolute;
+          top: 1rem;
+          right: 1rem;
+          background: none;
+          border: none;
+          font-size: 2rem;
+          cursor: pointer;
+          color: var(--text, #333);
+          line-height: 1;
+        }
+
+        .modal-content h2 {
+          margin-top: 0;
+          margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+          margin-bottom: 1rem;
+        }
+
+        .form-group label {
+          display: block;
+          margin-bottom: 0.5rem;
+          font-weight: 500;
+        }
+
+        .form-group input {
+          width: 100%;
+          padding: 0.5rem;
+          border: 1px solid var(--border, #ddd);
+          border-radius: 4px;
+          font-size: 1rem;
+        }
+
+        .form-group small {
+          display: block;
+          margin-top: 0.25rem;
+          color: var(--muted, #666);
+          font-size: 0.85rem;
+        }
+
+        .error-message {
+          color: #d32f2f;
+          background: #ffebee;
+          padding: 0.75rem;
+          border-radius: 4px;
+          margin-bottom: 1rem;
+        }
+
+        .modal-content .btn {
+          width: 100%;
+          margin-top: 0.5rem;
+        }
+      `}</style>
     </main>
   );
 }

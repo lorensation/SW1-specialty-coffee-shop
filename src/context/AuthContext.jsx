@@ -2,22 +2,98 @@ import { createContext, useContext, useEffect, useState } from "react";
 
 const AuthCtx = createContext();
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+
 export function AuthProvider({ children }){
-  const [user, setUser] = useState(()=>{
-    try { return JSON.parse(localStorage.getItem("demo_user")) || null; }
-    catch { return null; }
-  });
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(()=>{
-    localStorage.setItem("demo_user", JSON.stringify(user));
-  }, [user]);
+  // Check if user is already logged in on mount
+  useEffect(() => {
+    checkAuth();
+  }, []);
 
-  const login = () => setUser({ name:"Juan Pérez", email:"juan@example.com" });
-  const register = () => setUser({ name:"Nueva Persona", email:"nuevo@example.com" });
-  const logout = () => setUser(null);
+  const checkAuth = async () => {
+    try {
+      const response = await fetch(`${API_URL}/auth/me`, {
+        credentials: 'include', // Important: send cookies
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setUser(data.user);
+      } else {
+        setUser(null);
+      }
+    } catch (error) {
+      console.error('Auth check failed:', error);
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const login = async (email, password) => {
+    try {
+      const response = await fetch(`${API_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // Important: send/receive cookies
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Login failed');
+      }
+
+      setUser(data.user);
+      return { success: true, user: data.user };
+    } catch (error) {
+      console.error('Login error:', error);
+      return { success: false, error: error.message };
+    }
+  };
+
+  const register = async (name, email, password) => {
+    try {
+      const response = await fetch(`${API_URL}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // Important: send/receive cookies
+        body: JSON.stringify({ name, email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Registration failed');
+      }
+
+      setUser(data.user);
+      return { success: true, user: data.user };
+    } catch (error) {
+      console.error('Register error:', error);
+      return { success: false, error: error.message };
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await fetch(`${API_URL}/auth/logout`, {
+        method: 'POST',
+        credentials: 'include', // Important: send cookies
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      setUser(null);
+    }
+  };
 
   return (
-    <AuthCtx.Provider value={{ user, login, register, logout }}>
+    <AuthCtx.Provider value={{ user, login, register, logout, loading, checkAuth }}>
       {children}
     </AuthCtx.Provider>
   );
