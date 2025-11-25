@@ -86,17 +86,7 @@ class ProductModel {
     try {
       const { data, error } = await supabase
         .from('products')
-        .select(`
-          *,
-          opinions(
-            id,
-            rating,
-            title,
-            comment,
-            created_at,
-            users(name, avatar_url)
-          )
-        `)
+        .select('*')
         .eq('id', id)
         .single();
       

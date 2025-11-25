@@ -8,6 +8,7 @@ export default function Account(){
   const [showRegister, setShowRegister] = useState(false);
   const [formData, setFormData] = useState({ name: "", email: "", password: "" });
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
   // Modo oscuro (si ya tenías este bloque, déjalo igual)
@@ -18,6 +19,7 @@ export default function Account(){
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     setError("");
+    setSuccess("");
   };
 
   const handleLogin = async (e) => {
@@ -25,15 +27,48 @@ export default function Account(){
     setLoading(true);
     setError("");
 
+    // Validate email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setError("Por favor ingresa un correo electrónico válido");
+      setLoading(false);
+      return;
+    }
+
+    // Validate password
+    if (!formData.password || formData.password.length < 1) {
+      setError("Por favor ingresa tu contraseña");
+      setLoading(false);
+      return;
+    }
+
     const result = await login(formData.email, formData.password);
     
     if (result.success) {
       setShowLogin(false);
       setFormData({ name: "", email: "", password: "" });
+      setSuccess("¡Sesión iniciada correctamente!");
+      setTimeout(() => setSuccess(""), 3000);
     } else {
       setError(result.error || "Error al iniciar sesión");
     }
     setLoading(false);
+  };
+
+  const validatePassword = (password) => {
+    if (password.length < 8) {
+      return "La contraseña debe tener al menos 8 caracteres";
+    }
+    if (!/[A-Z]/.test(password)) {
+      return "La contraseña debe incluir al menos una letra mayúscula";
+    }
+    if (!/[a-z]/.test(password)) {
+      return "La contraseña debe incluir al menos una letra minúscula";
+    }
+    if (!/[0-9]/.test(password)) {
+      return "La contraseña debe incluir al menos un número";
+    }
+    return null;
   };
 
   const handleRegister = async (e) => {
@@ -41,8 +76,25 @@ export default function Account(){
     setLoading(true);
     setError("");
 
-    if (formData.password.length < 8) {
-      setError("La contraseña debe tener al menos 8 caracteres");
+    // Validate name
+    if (!formData.name || formData.name.trim().length < 2) {
+      setError("El nombre debe tener al menos 2 caracteres");
+      setLoading(false);
+      return;
+    }
+
+    // Validate email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setError("Por favor ingresa un correo electrónico válido");
+      setLoading(false);
+      return;
+    }
+
+    // Validate password
+    const passwordError = validatePassword(formData.password);
+    if (passwordError) {
+      setError(passwordError);
       setLoading(false);
       return;
     }
@@ -52,6 +104,8 @@ export default function Account(){
     if (result.success) {
       setShowRegister(false);
       setFormData({ name: "", email: "", password: "" });
+      setSuccess("¡Cuenta creada exitosamente! Bienvenido/a.");
+      setTimeout(() => setSuccess(""), 3000);
     } else {
       setError(result.error || "Error al registrarse");
     }
@@ -63,6 +117,7 @@ export default function Account(){
     setShowRegister(false);
     setFormData({ name: "", email: "", password: "" });
     setError("");
+    setSuccess("");
   };
 
   const reservas = ["19/07/2025 – 2 pax", "20/08/2025 – 3 pax", "24/08/2025 – 2 pax"];
@@ -76,6 +131,13 @@ export default function Account(){
   return (
     <main className="account-page">
       <h1 className="account-title">Mi cuenta</h1>
+
+      {/* Success Message */}
+      {success && (
+        <div className="success-notification">
+          {success}
+        </div>
+      )}
 
       {/* Cabecera */}
       <section className="account-header">
@@ -244,6 +306,30 @@ export default function Account(){
       )}
 
       <style>{`
+        .success-notification {
+          position: fixed;
+          top: 2rem;
+          right: 2rem;
+          background: #4caf50;
+          color: white;
+          padding: 1rem 1.5rem;
+          border-radius: 4px;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+          z-index: 2000;
+          animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+          from {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+
         .modal-overlay {
           position: fixed;
           top: 0;

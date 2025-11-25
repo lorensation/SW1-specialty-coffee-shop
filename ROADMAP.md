@@ -152,68 +152,73 @@ git push origin your-feature-branch
 
 ---
 
-### **Phase 2: Authentication Integration** (Week 2)
+### **Phase 2: Authentication Integration** (Week 2) ✅ COMPLETED
 **Goal:** Connect login/register functionality with backend
 
 #### Tasks:
 
-**2.1 Auth Context Integration** 👤
+**2.1 Auth Context Integration** 👤 ✅ COMPLETED
 - **Assignee:** Student 3
 - **Branch:** `feature/auth-integration`
 - **Priority:** HIGH
 - **Estimated Time:** 8 hours
 
 **Tasks:**
-- [ ] Update `AuthContext.jsx` to use real API calls (already done, verify)
-- [ ] Test registration flow: Account page → backend → Supabase
-- [ ] Test login flow: Account page → backend → session cookie
-- [ ] Test logout flow: Clear session
-- [ ] Test `checkAuth` on app load (session persistence)
-- [ ] Add loading states during auth operations
-- [ ] Display error messages from backend
-- [ ] Add password validation (min 8 characters, etc.)
+- [x] Update `AuthContext.jsx` to use real API calls
+- [x] Test registration flow: Account page → backend → Supabase
+- [x] Test login flow: Account page → backend → session cookie
+- [x] Test logout flow: Clear session
+- [x] Test `checkAuth` on app load (session persistence)
+- [x] Add loading states during auth operations
+- [x] Display error messages from backend
+- [x] Add password validation (min 8 characters, uppercase, lowercase, numbers)
 
-**Deliverable:** Fully functional authentication system
+**Deliverable:** Fully functional authentication system ✅
 
 ---
 
-**2.2 Protected Routes** 🛡️
+**2.2 Protected Routes** 🛡️ ✅ COMPLETED
 - **Assignee:** Student 3
 - **Branch:** `feature/protected-routes`
 - **Priority:** MEDIUM
 - **Estimated Time:** 4 hours
 
 **Tasks:**
-- [ ] Create `ProtectedRoute` component wrapper
-- [ ] Protect user profile/account pages
-- [ ] Redirect to login if not authenticated
-- [ ] Show appropriate messages for unauthorized access
-- [ ] Test with both authenticated and non-authenticated users
+- [x] Create `ProtectedRoute` component wrapper
+- [x] Protect user profile/account pages
+- [x] Redirect to login if not authenticated
+- [x] Show appropriate messages for unauthorized access
+- [x] Test with both authenticated and non-authenticated users
 
-**Deliverable:** Route protection based on authentication status
+**Deliverable:** Route protection based on authentication status ✅
 
 ---
 
-### **Phase 3: Menu & Products Integration** (Week 3)
+### **Phase 3: Menu & Products Integration** (Week 3) ✅ COMPLETED
 **Goal:** Replace hardcoded menu data with backend API
 
 #### Tasks:
 
-**3.1 Products API Integration** ☕
+**3.1 Products API Integration** ☕ ✅ COMPLETED
 - **Assignee:** Student 4
 - **Branch:** `feature/menu-integration`
 - **Priority:** HIGH
 - **Estimated Time:** 8 hours
 
 **Tasks:**
-- [ ] Remove hardcoded `DATA` object from `Menu.jsx`
-- [ ] Fetch products from `/api/products` on component mount
-- [ ] Add loading spinner while fetching
-- [ ] Handle empty states (no products)
-- [ ] Handle error states (API failure)
-- [ ] Filter products by category (origen, bebida, postres, ediciones)
-- [ ] Display product images from backend (image_url)
-- [ ] Add "Add to Cart" functionality with real product IDs
+- [x] Remove hardcoded `DATA` object from `Menu.jsx`
+- [x] Fetch products from `/api/products` on component mount
+- [x] Add loading spinner while fetching
+- [x] Handle empty states (no products)
+- [x] Handle error states (API failure)
+- [x] Filter products by category (origen, bebida, postres, ediciones)
+- [x] Display product images from backend (image_url)
+- [x] Add "Add to Cart" functionality with real product IDs
+- [x] Created API service layer (api.js)
+- [x] Created productService.js for product API calls
+- [x] Created reservationService.js for future use
+- [x] Added loading skeletons for better UX
+- [x] Added stock_quantity check for "Agotado" state
 
 **API Endpoints to use:**
 ```javascript
@@ -222,7 +227,7 @@ GET /api/products/category/:category
 GET /api/products/:id
 ```
 
-**Deliverable:** Dynamic menu populated from database
+**Deliverable:** Dynamic menu populated from database ✅
 
 ---
 
@@ -553,13 +558,13 @@ GET /api/reservations (user's bookings)
 1. ✅ Environment setup & API service layer
 2. ✅ Authentication integration
 3. ✅ Menu/Products API integration
-4. ✅ Booking/Reservations integration
-5. ✅ Cart & Checkout system
+4. 🟡 Booking/Reservations integration
+5. 🟡 Cart & Checkout system
 
 ### Should Have (MEDIUM Priority)
 6. 🟡 User reservations dashboard
 7. 🟡 Reviews/Opinions system
-8. 🟡 Protected routes
+8. ✅ Protected routes
 9. 🟡 Email notifications
 
 ### Nice to Have (LOW Priority)

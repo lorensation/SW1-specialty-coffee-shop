@@ -15,13 +15,14 @@ export function CartProvider({ children }){
 
   // Acciones
   const addItem = (prod) => {
-    // prod: {id, name, price}
-    setItems(prev=>{
-      const found = prev.find(p=>p.id===prod.id);
-      if(found){
-        return prev.map(p=>p.id===prod.id ? {...p, qty:p.qty+1, checked:true} : p);
+    // prod: {id, name, price, ...other fields from API}
+    setItems(prev => {
+      const found = prev.find(p => p.id === prod.id);
+      if (found) {
+        return prev.map(p => p.id === prod.id ? { ...p, qty: p.qty + 1, checked: true } : p);
       }
-      return [...prev, {...prod, qty:1, checked:true}];
+      // Store all product data but add qty and checked
+      return [...prev, { ...prod, qty: 1, checked: true }];
     });
   };
   const removeItem   = (id)        => setItems(prev=>prev.filter(p=>p.id!==id));

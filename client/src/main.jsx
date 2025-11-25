@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import Layout from "./components/Layout.jsx";
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import Home from "./pages/Home.jsx";
 import About from "./pages/About/About.jsx";
 import Menu from "./pages/Menu/Menu.jsx";
@@ -27,7 +28,14 @@ const router = createBrowserRouter([
       { path: "booking", element: <Booking /> },
       { path: "feed", element: <Feed /> },
       { path: "account", element: <Account /> },
-      { path: "cart", element: <Cart /> },
+      { 
+        path: "cart", 
+        element: (
+          <ProtectedRoute>
+            <Cart />
+          </ProtectedRoute>
+        ) 
+      },
     ],
   },
 ]);
