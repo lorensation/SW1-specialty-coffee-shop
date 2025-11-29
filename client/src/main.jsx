@@ -28,13 +28,9 @@ const router = createBrowserRouter([
       { path: "booking", element: <Booking /> },
       { path: "feed", element: <Feed /> },
       { path: "account", element: <Account /> },
-      { 
-        path: "cart", 
-        element: (
-          <ProtectedRoute>
-            <Cart />
-          </ProtectedRoute>
-        ) 
+      {
+        path: "cart",
+        element: <Cart />
       },
     ],
   },
