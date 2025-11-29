@@ -24,8 +24,9 @@ export const register = asyncHandler(async (req, res) => {
   // Set session cookie
   res.cookie('session_token', sessionToken, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: process.env.NODE_ENV === 'production', // false in dev
     sameSite: 'lax',
+    path: '/',
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   });
 
@@ -56,8 +57,9 @@ export const login = asyncHandler(async (req, res) => {
   // Set session cookie
   res.cookie('session_token', sessionToken, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: process.env.NODE_ENV === 'production', // false in dev
     sameSite: 'lax',
+    path: '/',
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   });
 

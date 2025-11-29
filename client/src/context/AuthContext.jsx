@@ -4,7 +4,7 @@ const AuthCtx = createContext();
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
-export function AuthProvider({ children }){
+export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -18,10 +18,10 @@ export function AuthProvider({ children }){
       const response = await fetch(`${API_URL}/auth/me`, {
         credentials: 'include', // Important: send cookies
       });
-      
+
       if (response.ok) {
         const data = await response.json();
-        setUser(data.user);
+        setUser(data.data.user);
       } else {
         setUser(null);
       }
@@ -48,8 +48,8 @@ export function AuthProvider({ children }){
         throw new Error(data.message || 'Login failed');
       }
 
-      setUser(data.user);
-      return { success: true, user: data.user };
+      setUser(data.data.user);
+      return { success: true, user: data.data.user };
     } catch (error) {
       console.error('Login error:', error);
       return { success: false, error: error.message };
@@ -71,8 +71,8 @@ export function AuthProvider({ children }){
         throw new Error(data.message || 'Registration failed');
       }
 
-      setUser(data.user);
-      return { success: true, user: data.user };
+      setUser(data.data.user);
+      return { success: true, user: data.data.user };
     } catch (error) {
       console.error('Register error:', error);
       return { success: false, error: error.message };
