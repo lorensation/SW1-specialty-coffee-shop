@@ -1,33 +1,50 @@
 import { useRef, useState } from "react";
 
-/* Importa las dos imágenes de contenido */
+/* Importa las imágenes de contenido */
 import about2 from "../../assets/about_2.jpg";
 import about3 from "../../assets/about_3.jpg";
+import teamBarista from "../../assets/team-barista.png";
+import teamRoaster from "../../assets/team-roaster.png";
+import teamBarista2 from "../../assets/team-barista-2.png";
+import teamManager from "../../assets/team-manager.png";
 
-export default function About(){
+export default function About() {
   const trackRef = useRef(null);
 
   const scroll = (dir) => {
     const el = trackRef.current;
-    if(!el) return;
-    const step = 220;
-    el.scrollBy({ left: dir === "next" ? step : -step, behavior: "smooth" });
+    if (!el) return;
+    // Ancho tarjeta (280) + gap (16) approx = 300-320
+    const step = 320;
+    const current = el.scrollLeft;
+    const target = dir === "next" ? current + step : current - step;
+
+    el.scrollTo({ left: target, behavior: "smooth" });
   };
 
-  const [drag, setDrag] = useState({active:false, startX:0, scrollLeft:0});
+  const [drag, setDrag] = useState({ active: false, startX: 0, scrollLeft: 0 });
+
   const onDown = (e) => {
     const el = trackRef.current;
-    if(!el) return;
+    if (!el) return;
+    // Solo prevenir default si no es un botón
+    if (e.target.tagName !== 'BUTTON') {
+      // e.preventDefault(); // A veces bloquea el click, mejor no ponerlo aquí si no es necesario
+    }
     const x = e.pageX ?? e.touches?.[0]?.pageX ?? 0;
-    setDrag({active:true, startX:x, scrollLeft:el.scrollLeft});
+    setDrag({ active: true, startX: x, scrollLeft: el.scrollLeft });
   };
+
   const onMove = (e) => {
-    if(!drag.active) return;
+    if (!drag.active) return;
+    e.preventDefault(); // Importante para evitar selección de texto o arrastre de imagen nativo
     const el = trackRef.current;
     const x = e.pageX ?? e.touches?.[0]?.pageX ?? 0;
-    el.scrollLeft = drag.scrollLeft - (x - drag.startX);
+    const walk = (x - drag.startX) * 1.5; // Multiplicador para más velocidad
+    el.scrollLeft = drag.scrollLeft - walk;
   };
-  const onUp = () => setDrag(d => ({...d, active:false}));
+
+  const onUp = () => setDrag(d => ({ ...d, active: false }));
 
   return (
     <section>
@@ -71,7 +88,13 @@ export default function About(){
       <div className="team">
         <h2>Equipo</h2>
         <div className="carousel">
-          <button className="prev" onClick={()=>scroll("prev")} aria-label="anterior">‹</button>
+          <button
+            className="prev"
+            onClick={(e) => { e.stopPropagation(); scroll("prev"); }}
+            aria-label="anterior"
+          >
+            ‹
+          </button>
 
           <div
             className="carousel-track"
@@ -84,14 +107,48 @@ export default function About(){
             onTouchMove={onMove}
             onTouchEnd={onUp}
           >
-            <div className="card">Barista Jefe</div>
-            <div className="card">Tostador</div>
-            <div className="card">Gerente</div>
-            <div className="card">Barista</div>
-            <div className="card">Invitado</div>
+            {/* Tarjetas con imagen */}
+            <div className="card">
+              <img src={teamBarista} alt="Barista Jefe" draggable="false" />
+              <div className="card-info">
+                <strong>Barista Jefe</strong>
+                <small>Especialista en Latte Art</small>
+              </div>
+            </div>
+
+            <div className="card">
+              <img src={teamRoaster} alt="Tostador" draggable="false" />
+              <div className="card-info">
+                <strong>Tostador</strong>
+                <small>Control de calidad</small>
+              </div>
+            </div>
+
+            <div className="card">
+              <img src={teamManager} alt="Gerente" style={{ objectPosition: 'top' }} draggable="false" />
+              <div className="card-info">
+                <strong>Gerente</strong>
+                <small>Gestión</small>
+              </div>
+            </div>
+
+            <div className="card">
+              <img src={teamBarista2} alt="Barista" style={{ filter: 'sepia(0.2)' }} draggable="false" />
+              <div className="card-info">
+                <strong>Barista</strong>
+                <small>Atención</small>
+              </div>
+            </div>
+
           </div>
 
-          <button className="next" onClick={()=>scroll("next")} aria-label="siguiente">›</button>
+          <button
+            className="next"
+            onClick={(e) => { e.stopPropagation(); scroll("next"); }}
+            aria-label="siguiente"
+          >
+            ›
+          </button>
         </div>
       </div>
 
