@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 
 /* Importa las imágenes de contenido */
 import about2 from "../../assets/about_2.jpg";
@@ -11,25 +11,56 @@ import teamManager from "../../assets/team-manager.png";
 export default function About() {
   const trackRef = useRef(null);
 
+  const [activeIndex, setActiveIndex] = useState(1); // Empezar en el segundo (índice 1)
+
+  const teamMembers = [
+    { role: "Barista Jefe", desc: "Especialista en Latte Art", img: teamBarista },
+    { role: "Tostador", desc: "Control de calidad", img: teamRoaster },
+    { role: "Gerente", desc: "Gestión", img: teamManager, style: { objectPosition: 'top' } },
+    { role: "Barista", desc: "Atención", img: teamBarista2, style: { filter: 'sepia(0.2)' } },
+  ];
+
   const scroll = (dir) => {
+    if (dir === "next") {
+      setActiveIndex((prev) => (prev + 1) % teamMembers.length);
+    } else {
+      setActiveIndex((prev) => (prev - 1 + teamMembers.length) % teamMembers.length);
+    }
+  };
+
+  // Efecto para centrar la tarjeta activa
+  useEffect(() => {
     const el = trackRef.current;
     if (!el) return;
-    // Ancho tarjeta (280) + gap (16) approx = 300-320
-    const step = 320;
-    const current = el.scrollLeft;
-    const target = dir === "next" ? current + step : current - step;
 
-    el.scrollTo({ left: target, behavior: "smooth" });
-  };
+    const cardWidth = 320; // Aproximado (card min-width + gap)
+    // Calcular posición para centrar: (index * cardWidth) - (containerWidth / 2) + (cardWidth / 2)
+    // Simplificado: index * cardWidth - offset
+    // Ajuste fino a ojo o calculado dinámicamente
+
+    // Mejor enfoque: buscar el elemento hijo activo y centrarlo
+    const activeCard = el.children[activeIndex];
+    if (activeCard) {
+      const trackWidth = el.offsetWidth;
+      const cardLeft = activeCard.offsetLeft;
+      const cardW = activeCard.offsetWidth;
+
+      const targetScroll = cardLeft - (trackWidth / 2) + (cardW / 2);
+
+      el.scrollTo({
+        left: targetScroll,
+        behavior: 'smooth'
+      });
+    }
+  }, [activeIndex]);
 
   const [drag, setDrag] = useState({ active: false, startX: 0, scrollLeft: 0 });
 
   const onDown = (e) => {
     const el = trackRef.current;
     if (!el) return;
-    // Solo prevenir default si no es un botón
     if (e.target.tagName !== 'BUTTON') {
-      // e.preventDefault(); // A veces bloquea el click, mejor no ponerlo aquí si no es necesario
+      // e.preventDefault(); 
     }
     const x = e.pageX ?? e.touches?.[0]?.pageX ?? 0;
     setDrag({ active: true, startX: x, scrollLeft: el.scrollLeft });
@@ -37,10 +68,10 @@ export default function About() {
 
   const onMove = (e) => {
     if (!drag.active) return;
-    e.preventDefault(); // Importante para evitar selección de texto o arrastre de imagen nativo
+    e.preventDefault();
     const el = trackRef.current;
     const x = e.pageX ?? e.touches?.[0]?.pageX ?? 0;
-    const walk = (x - drag.startX) * 1.5; // Multiplicador para más velocidad
+    const walk = (x - drag.startX) * 1.5;
     el.scrollLeft = drag.scrollLeft - walk;
   };
 
@@ -107,39 +138,19 @@ export default function About() {
             onTouchMove={onMove}
             onTouchEnd={onUp}
           >
-            {/* Tarjetas con imagen */}
-            <div className="card">
-              <img src={teamBarista} alt="Barista Jefe" draggable="false" />
-              <div className="card-info">
-                <strong>Barista Jefe</strong>
-                <small>Especialista en Latte Art</small>
+            {teamMembers.map((member, index) => (
+              <div
+                key={index}
+                className={`card ${index === activeIndex ? 'active' : ''}`}
+                onClick={() => setActiveIndex(index)}
+              >
+                <img src={member.img} alt={member.role} style={member.style || {}} draggable="false" />
+                <div className="card-info">
+                  <strong>{member.role}</strong>
+                  <small>{member.desc}</small>
+                </div>
               </div>
-            </div>
-
-            <div className="card">
-              <img src={teamRoaster} alt="Tostador" draggable="false" />
-              <div className="card-info">
-                <strong>Tostador</strong>
-                <small>Control de calidad</small>
-              </div>
-            </div>
-
-            <div className="card">
-              <img src={teamManager} alt="Gerente" style={{ objectPosition: 'top' }} draggable="false" />
-              <div className="card-info">
-                <strong>Gerente</strong>
-                <small>Gestión</small>
-              </div>
-            </div>
-
-            <div className="card">
-              <img src={teamBarista2} alt="Barista" style={{ filter: 'sepia(0.2)' }} draggable="false" />
-              <div className="card-info">
-                <strong>Barista</strong>
-                <small>Atención</small>
-              </div>
-            </div>
-
+            ))}
           </div>
 
           <button

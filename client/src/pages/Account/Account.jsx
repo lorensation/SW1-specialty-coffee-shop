@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext.jsx";
 
-export default function Account(){
+export default function Account() {
   const { user, login, register, logout } = useAuth();
   const [dark, setDark] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
@@ -12,7 +12,7 @@ export default function Account(){
   const [loading, setLoading] = useState(false);
 
   // Modo oscuro (si ya tenías este bloque, déjalo igual)
-  useEffect(()=>{
+  useEffect(() => {
     document.body.classList.toggle("theme-dark", dark);
   }, [dark]);
 
@@ -43,7 +43,7 @@ export default function Account(){
     }
 
     const result = await login(formData.email, formData.password);
-    
+
     if (result.success) {
       setShowLogin(false);
       setFormData({ name: "", email: "", password: "" });
@@ -100,7 +100,7 @@ export default function Account(){
     }
 
     const result = await register(formData.name, formData.email, formData.password);
-    
+
     if (result.success) {
       setShowRegister(false);
       setFormData({ name: "", email: "", password: "" });
@@ -122,11 +122,11 @@ export default function Account(){
 
   const reservas = ["19/07/2025 – 2 pax", "20/08/2025 – 3 pax", "24/08/2025 – 2 pax"];
   const opiniones = [
-    { sitio:"StarBucks", rating:4 },
-    { sitio:"Cafe rojo", rating:2 },
-    { sitio:"Mocalia",   rating:5 },
+    { sitio: "StarBucks", rating: 4 },
+    { sitio: "Cafe rojo", rating: 2 },
+    { sitio: "Mocalia", rating: 5 },
   ];
-  const Stars = ({n}) => <span className="stars">{"★".repeat(n)}{"☆".repeat(5-n)}</span>;
+  const Stars = ({ n }) => <span className="stars">{"★".repeat(n)}{"☆".repeat(5 - n)}</span>;
 
   return (
     <main className="account-page">
@@ -141,15 +141,21 @@ export default function Account(){
 
       {/* Cabecera */}
       <section className="account-header">
-        <div className="account-avatar" aria-hidden="true" />
+        <div className="account-avatar">
+          {/* Placeholder icon (SVG) */}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+        </div>
         <div className="account-info">
           {user ? (
             <>
-              <div><strong>Nombre de usuario</strong>: {user.name}</div>
-              <div><strong>Correo electrónico</strong>: {user.email}</div>
+              <h2>{user.name}</h2>
+              <p>{user.email}</p>
             </>
           ) : (
-            <div style={{color:"var(--muted)"}}>¿Aún no tienes cuenta?</div>
+            <div style={{ color: "var(--muted)" }}>¿Aún no tienes cuenta?</div>
           )}
         </div>
         <div className="account-ctas">
@@ -169,18 +175,18 @@ export default function Account(){
         <article className="account-card">
           <h3>Mis reservas</h3>
           <ul className="account-list">
-            {reservas.map((r,i)=>(<li key={i}>{r}</li>))}
+            {reservas.map((r, i) => (<li key={i}>{r}</li>))}
           </ul>
-          <div style={{marginTop:".75rem"}}>
+          <div style={{ marginTop: ".75rem" }}>
             <a className="btn btn-primary" href="/menu">Realizar nuevo pedido</a>
           </div>
         </article>
 
         <article className="account-card">
           <h3>Mis opiniones</h3>
-          <ul className="account-list" style={{listStyle:"none", paddingLeft:0}}>
-            {opiniones.map((o,i)=>(
-              <li key={i} style={{display:"flex", justifyContent:"space-between", margin:".35rem 0"}}>
+          <ul className="account-list" style={{ listStyle: "none", paddingLeft: 0 }}>
+            {opiniones.map((o, i) => (
+              <li key={i} style={{ display: "flex", justifyContent: "space-between", margin: ".35rem 0" }}>
                 <span>{o.sitio}</span><Stars n={o.rating} />
               </li>
             ))}
@@ -197,8 +203,8 @@ export default function Account(){
               aria-checked={dark}
               data-on={dark ? "true" : "false"}
               tabIndex={0}
-              onClick={()=>setDark(v=>!v)}
-              onKeyDown={(e)=>{ if(e.key==="Enter"||e.key===" ") setDark(v=>!v); }}
+              onClick={() => setDark(v => !v)}
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setDark(v => !v); }}
             />
           </div>
         </article>
