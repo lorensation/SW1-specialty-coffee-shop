@@ -1,11 +1,32 @@
+import { useRef, useEffect, useState } from "react";
 import { useCart } from "../../context/CartContext.jsx";
-
 import { useAuth } from "../../context/AuthContext.jsx";
 import { Link } from "react-router-dom";
+import { getFeaturedProducts } from "../../services/productService.js";
 
 export default function Cart() {
-  const { items, removeItem, updateQty, toggleChecked, totals, clearCart } = useCart();
+  const { items, removeItem, updateQty, toggleChecked, totals, clearCart, addItem } = useCart();
   const { user } = useAuth();
+  const [recommended, setRecommended] = useState([]);
+  const [loadingRecs, setLoadingRecs] = useState(true);
+
+  // Fetch recommendations on mount
+  useEffect(() => {
+    const fetchRecs = async () => {
+      try {
+        const res = await getFeaturedProducts();
+        if (res.success) {
+          // Take only 2-3 items for the sidebar
+          setRecommended(res.data.slice(0, 3));
+        }
+      } catch (err) {
+        console.error("Error fetching recommendations:", err);
+      } finally {
+        setLoadingRecs(false);
+      }
+    };
+    fetchRecs();
+  }, []);
 
   if (!user) {
     return (
@@ -71,9 +92,76 @@ export default function Cart() {
 
         <aside className="cart-side">
           <div className="cart-box">
-            <h3>Te podría interesar:</h3>
-            <div className="rec-card" aria-label="Recomendación 1" />
-            <div className="rec-card" aria-label="Recomendación 2" />
+            <h3 style={{ marginTop: 0, marginBottom: "1rem", color: "var(--brand)" }}>Te podría interesar:</h3>
+
+            {loadingRecs ? (
+              <p style={{ color: "var(--muted)", fontStyle: "italic" }}>Cargando sugerencias...</p>
+            ) : recommended.length === 0 ? (
+              <p style={{ color: "var(--muted)" }}>No hay sugerencias por ahora.</p>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                {recommended.map(prod => (
+                  <div key={prod.id} className="rec-card" style={{
+                    display: "flex",
+                    gap: "0.8rem",
+                    padding: "0.8rem",
+                    border: "1px solid #eee",
+                    borderRadius: "8px",
+                    background: "#fff",
+                    alignItems: "center"
+                  }}>
+                    <div style={{
+                      width: "60px",
+                      height: "60px",
+                      borderRadius: "6px",
+                      background: "#f0f0f0",
+                      overflow: "hidden",
+                      flexShrink: 0
+                    }}>
+                      {prod.image_url ? (
+                        <img src={prod.image_url} alt={prod.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      ) : (
+                        <div style={{ width: "100%", height: "100%", background: "#e0e0e0" }} />
+                      )}
+                    </div>
+
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <h4 style={{ margin: "0 0 0.2rem", fontSize: "0.95rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                        {prod.name}
+                      </h4>
+                      <p style={{ margin: 0, color: "var(--brand)", fontWeight: "bold", fontSize: "0.9rem" }}>
+                        {prod.price.toFixed(2)} €
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={() => addItem(prod)}
+                      style={{
+                        border: "none",
+                        background: "var(--brand)",
+                        color: "white",
+                        width: "30px",
+                        height: "30px",
+                        borderRadius: "50%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        cursor: "pointer",
+                        fontSize: "1.2rem",
+                        padding: 0
+                      }}
+                      title="Añadir al carrito"
+                    >
+                      +
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <Link to="/menu" style={{ display: "block", marginTop: "1rem", textAlign: "center", fontSize: "0.9rem", textDecoration: "none", color: "var(--muted)" }}>
+              Ver todo el menú
+            </Link>
           </div>
         </aside>
       </div>
