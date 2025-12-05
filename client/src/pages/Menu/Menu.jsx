@@ -52,11 +52,14 @@ function Row({ title, category, loading, error, items, onAddClick, favorites, on
                   <div className="menu-media" aria-hidden="true" />
                 )}
                 <div className="menu-body">
-                  <p className="menu-desc">
-                    {it.name}
-                    {it.tasting_notes && ` — ${it.tasting_notes}`}
-                    {it.description && !it.tasting_notes && ` — ${it.description}`}
-                  </p>
+                  <div className="menu-info">
+                    <h3 className="menu-name">{it.name}</h3>
+                    {(it.tasting_notes || it.description) && (
+                      <p className="menu-ingredients">
+                        {it.tasting_notes || it.description}
+                      </p>
+                    )}
+                  </div>
                   <div className="menu-meta">
                     <div className="menu-price"><b>Precio total {it.price.toFixed(2)}€</b></div>
                     <button
