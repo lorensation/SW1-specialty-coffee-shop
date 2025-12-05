@@ -26,7 +26,7 @@ export default function Feed() {
             “El mejor café de especialidad de la ciudad. El ambiente es súper acogedor y los baristas saben recomendarte según tus gustos. ¡El Flat White es increíble!”
           </p>
           <div className="feed-author">
-            <div className="feed-avatar" style={{ background: "#d4c5b5" }} aria-hidden="true" />
+            <div className="feed-avatar" style={{ backgroundImage: "url('https://randomuser.me/api/portraits/women/44.jpg')", backgroundSize: "cover", backgroundPosition: "center" }} aria-hidden="true" />
             <div>
               <strong>María García</strong><br />
               <small>Cliente frecuente</small>
@@ -39,7 +39,7 @@ export default function Feed() {
             “Me encanta venir a trabajar aquí. Buena música, wifi rápido y unos postres caseros que son una perdición. Recomendadísimo el bizcocho de zanahoria.”
           </p>
           <div className="feed-author">
-            <div className="feed-avatar" style={{ background: "#b5c7d4" }} aria-hidden="true" />
+            <div className="feed-avatar" style={{ backgroundImage: "url('https://randomuser.me/api/portraits/men/32.jpg')", backgroundSize: "cover", backgroundPosition: "center" }} aria-hidden="true" />
             <div>
               <strong>Carlos Ruiz</strong><br />
               <small>Digital Nomad</small>
@@ -52,7 +52,7 @@ export default function Feed() {
             “Compramos café en grano para casa todas las semanas. La calidad es constante y siempre nos ayudan a ajustar la molienda para nuestra cafetera.”
           </p>
           <div className="feed-author">
-            <div className="feed-avatar" style={{ background: "#b5d4bb" }} aria-hidden="true" />
+            <div className="feed-avatar" style={{ backgroundImage: "url('https://randomuser.me/api/portraits/women/65.jpg')", backgroundSize: "cover", backgroundPosition: "center" }} aria-hidden="true" />
             <div>
               <strong>Laura y Pedro</strong><br />
               <small>Amantes del café</small>
