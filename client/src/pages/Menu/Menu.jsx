@@ -4,7 +4,7 @@ import { useAuth } from "../../context/AuthContext.jsx";
 import { getProductsByCategory } from "../../services/productService.js";
 import { Link } from "react-router-dom";
 
-function Row({ title, category, loading, error, items, onAddClick }) {
+function Row({ title, category, loading, error, items, onAddClick, favorites, onToggleFavorite }) {
   const trackRef = useRef(null);
   const scroll = d => trackRef.current?.scrollBy({ left: d === "next" ? 340 : -340, behavior: "smooth" });
 
@@ -39,6 +39,13 @@ function Row({ title, category, loading, error, items, onAddClick }) {
           ) : (
             items.map(it => (
               <article key={it.id} className="menu-card">
+                <button
+                  className={`fav-btn ${favorites.some(f => f.id === it.id) ? 'active' : ''}`}
+                  onClick={() => onToggleFavorite(it)}
+                  aria-label={favorites.some(f => f.id === it.id) ? "Quitar de favoritos" : "Añadir a favoritos"}
+                >
+                  {favorites.some(f => f.id === it.id) ? '♥' : '♡'}
+                </button>
                 {it.image_url ? (
                   <img src={it.image_url} alt={it.name} className="menu-media" />
                 ) : (
@@ -121,6 +128,29 @@ export default function Menu() {
     });
   }, []);
 
+  const [favorites, setFavorites] = useState(() => {
+    try {
+      const saved = localStorage.getItem("royal_favorites");
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const toggleFavorite = (product) => {
+    setFavorites(prev => {
+      const exists = prev.find(p => p.id === product.id);
+      let newFavs;
+      if (exists) {
+        newFavs = prev.filter(p => p.id !== product.id);
+      } else {
+        newFavs = [...prev, product];
+      }
+      localStorage.setItem("royal_favorites", JSON.stringify(newFavs));
+      return newFavs;
+    });
+  };
+
   const handleAddToCart = (product) => {
     if (!user) {
       setShowLoginModal(true);
@@ -167,6 +197,8 @@ export default function Menu() {
         loading={loading.origen}
         error={errors.origen}
         onAddClick={handleAddToCart}
+        favorites={favorites}
+        onToggleFavorite={toggleFavorite}
       />
       <Row
         title="Bebida"
@@ -175,6 +207,8 @@ export default function Menu() {
         loading={loading.bebida}
         error={errors.bebida}
         onAddClick={handleAddToCart}
+        favorites={favorites}
+        onToggleFavorite={toggleFavorite}
       />
       <Row
         title="Postres"
@@ -183,6 +217,8 @@ export default function Menu() {
         loading={loading.postres}
         error={errors.postres}
         onAddClick={handleAddToCart}
+        favorites={favorites}
+        onToggleFavorite={toggleFavorite}
       />
       <Row
         title="Ediciones especiales"
@@ -191,6 +227,8 @@ export default function Menu() {
         loading={loading.ediciones}
         error={errors.ediciones}
         onAddClick={handleAddToCart}
+        favorites={favorites}
+        onToggleFavorite={toggleFavorite}
       />
 
       <div className="menu-footer">
@@ -300,6 +338,37 @@ export default function Menu() {
           height: 200px;
           object-fit: cover;
           border-radius: 8px 8px 0 0;
+        }
+
+        .menu-card {
+          position: relative;
+        }
+
+        .fav-btn {
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          background: white;
+          border: none;
+          border-radius: 50%;
+          width: 32px;
+          height: 32px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          font-size: 1.2rem;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+          z-index: 10;
+          transition: transform 0.2s;
+        }
+
+        .fav-btn:hover {
+          transform: scale(1.1);
+        }
+
+        .fav-btn.active {
+          color: #e74c3c;
         }
 
         .menu-add:disabled {

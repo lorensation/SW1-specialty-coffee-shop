@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-export default function Booking(){
+export default function Booking() {
   const [form, setForm] = useState({
     name: "", email: "", people: "2", date: "", time: "", message: ""
   });
@@ -14,7 +14,7 @@ export default function Booking(){
   const onSubmit = (e) => {
     e.preventDefault();
     // Validación mínima
-    if(!form.name || !form.email || !form.date || !form.time){
+    if (!form.name || !form.email || !form.date || !form.time) {
       alert("Completa nombre, email, fecha y hora.");
       return;
     }
@@ -33,19 +33,19 @@ export default function Booking(){
             <div className="form-row">
               <label htmlFor="name">Nombre completo</label>
               <input id="name" name="name" className="input"
-                     value={form.name} onChange={onChange} placeholder="Tu nombre" />
+                value={form.name} onChange={onChange} placeholder="Tu nombre" />
             </div>
 
             <div className="form-row">
               <label htmlFor="email">Correo electrónico</label>
               <input id="email" name="email" type="email" className="input"
-                     value={form.email} onChange={onChange} placeholder="tucorreo@ejemplo.com" />
+                value={form.email} onChange={onChange} placeholder="tucorreo@ejemplo.com" />
             </div>
 
             <div className="form-row">
               <label htmlFor="people">Número de personas</label>
               <select id="people" name="people" className="select" value={form.people} onChange={onChange}>
-                {Array.from({length:10}, (_,i)=>i+1).map(n=>(
+                {Array.from({ length: 10 }, (_, i) => i + 1).map(n => (
                   <option key={n} value={String(n)}>{n}</option>
                 ))}
               </select>
@@ -54,19 +54,19 @@ export default function Booking(){
             <div className="form-row">
               <label htmlFor="date">Fecha</label>
               <input id="date" name="date" type="date" className="input"
-                     value={form.date} onChange={onChange} />
+                value={form.date} onChange={onChange} />
             </div>
 
             <div className="form-row">
               <label htmlFor="time">Hora</label>
               <input id="time" name="time" type="time" className="input"
-                     value={form.time} onChange={onChange} />
+                value={form.time} onChange={onChange} />
             </div>
 
             <div className="form-row">
               <label htmlFor="message">Mensaje opcional</label>
               <textarea id="message" name="message" className="textarea"
-                        value={form.message} onChange={onChange} placeholder="Alguna preferencia o comentario" />
+                value={form.message} onChange={onChange} placeholder="Alguna preferencia o comentario" />
             </div>
 
             <div className="form-row">
@@ -78,7 +78,7 @@ export default function Booking(){
             <div className="confirm" role="status" aria-live="polite">
               <b>¡Reserva recibida!</b>
               <p>
-                {form.name} — {form.people} persona(s), el {form.date} a las {form.time}.<br/>
+                {form.name} — {form.people} persona(s), el {form.date} a las {form.time}.<br />
                 Te escribiremos a <b>{form.email}</b> con la confirmación.
               </p>
             </div>
@@ -88,8 +88,19 @@ export default function Booking(){
         {/* Derecha: Dónde encontrarnos (mapa placeholder) */}
         <aside>
           <div className="booking-card">
-            <h3 style={{marginTop:0}}>Dónde encontrarnos</h3>
-            <div className="map-box" aria-label="Mapa / localización" />
+            <h3 style={{ marginTop: 0 }}>Dónde encontrarnos</h3>
+            <div className="map-box" style={{ overflow: "hidden", borderRadius: "10px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
+              <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3037.123456789!2d-3.703790!3d40.416775!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd42288000000001%3A0x0!2sPuerta%20del%20Sol!5e0!3m2!1ses!2ses!4v1700000000000!5m2!1ses!2ses"
+                width="100%"
+                height="100%"
+                style={{ border: 0, minHeight: "340px", display: "block" }}
+                allowFullScreen=""
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                title="Google Maps"
+              ></iframe>
+            </div>
           </div>
         </aside>
       </div>

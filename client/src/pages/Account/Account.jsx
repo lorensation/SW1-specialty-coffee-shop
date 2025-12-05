@@ -120,13 +120,27 @@ export default function Account() {
     setSuccess("");
   };
 
+  // Estado para favoritos
+  const [favoritos, setFavoritos] = useState([]);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("royal_favorites");
+      if (saved) {
+        setFavoritos(JSON.parse(saved));
+      }
+    } catch (e) {
+      console.error("Error cargando favoritos", e);
+    }
+  }, []);
+
+  const removeFavorite = (id) => {
+    const newFavs = favoritos.filter(f => f.id !== id);
+    setFavoritos(newFavs);
+    localStorage.setItem("royal_favorites", JSON.stringify(newFavs));
+  };
+
   const reservas = ["19/07/2025 – 2 pax", "20/08/2025 – 3 pax", "24/08/2025 – 2 pax"];
-  const opiniones = [
-    { sitio: "StarBucks", rating: 4 },
-    { sitio: "Cafe rojo", rating: 2 },
-    { sitio: "Mocalia", rating: 5 },
-  ];
-  const Stars = ({ n }) => <span className="stars">{"★".repeat(n)}{"☆".repeat(5 - n)}</span>;
 
   return (
     <main className="account-page">
@@ -183,14 +197,36 @@ export default function Account() {
         </article>
 
         <article className="account-card">
-          <h3>Mis opiniones</h3>
-          <ul className="account-list" style={{ listStyle: "none", paddingLeft: 0 }}>
-            {opiniones.map((o, i) => (
-              <li key={i} style={{ display: "flex", justifyContent: "space-between", margin: ".35rem 0" }}>
-                <span>{o.sitio}</span><Stars n={o.rating} />
-              </li>
-            ))}
-          </ul>
+          <h3>Mis favoritos</h3>
+          {favoritos.length === 0 ? (
+            <p style={{ color: "var(--muted)", fontStyle: "italic" }}>No tienes productos favoritos aún.</p>
+          ) : (
+            <ul className="account-list" style={{ listStyle: "none", paddingLeft: 0 }}>
+              {favoritos.map((fav) => (
+                <li key={fav.id} style={{ display: "flex", alignItems: "center", marginBottom: "0.5rem", borderBottom: "1px solid #eee", paddingBottom: "0.5rem" }}>
+                  {fav.image_url ? (
+                    <img src={fav.image_url} alt={fav.name} style={{ width: "40px", height: "40px", objectFit: "cover", borderRadius: "4px", marginRight: "0.75rem" }} />
+                  ) : (
+                    <div style={{ width: "40px", height: "40px", background: "#eee", borderRadius: "4px", marginRight: "0.75rem" }} />
+                  )}
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: "bold" }}>{fav.name}</div>
+                    <div style={{ fontSize: "0.85rem", color: "var(--muted)" }}>{fav.price.toFixed(2)}€</div>
+                  </div>
+                  <button
+                    onClick={() => removeFavorite(fav.id)}
+                    style={{ background: "none", border: "none", cursor: "pointer", color: "#e74c3c", fontSize: "1.2rem" }}
+                    aria-label="Quitar de favoritos"
+                  >
+                    &times;
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          <div style={{ marginTop: ".75rem" }}>
+            <a className="btn btn-outline" href="/menu">Ver menú completo</a>
+          </div>
         </article>
 
         <article className="account-card">
