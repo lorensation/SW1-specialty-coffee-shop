@@ -131,27 +131,79 @@ export default function Menu() {
     });
   }, []);
 
-  const [favorites, setFavorites] = useState(() => {
-    try {
-      const saved = localStorage.getItem("royal_favorites");
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
+  const [favorites, setFavorites] = useState([]);
 
-  const toggleFavorite = (product) => {
-    setFavorites(prev => {
-      const exists = prev.find(p => p.id === product.id);
-      let newFavs;
-      if (exists) {
-        newFavs = prev.filter(p => p.id !== product.id);
+  // Load favorites on mount or user change
+  useEffect(() => {
+    const loadFavorites = async () => {
+      if (user) {
+        try {
+          const token = localStorage.getItem('token');
+          const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5001/api'}/favorites`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+          });
+          const data = await response.json();
+          if (data.success) {
+            setFavorites(data.data);
+          }
+        } catch (error) {
+          console.error("Error loading favorites:", error);
+        }
       } else {
-        newFavs = [...prev, product];
+        // Fallback to local storage
+        try {
+          const saved = localStorage.getItem("royal_favorites");
+          if (saved) setFavorites(JSON.parse(saved));
+        } catch {
+          setFavorites([]);
+        }
       }
+    };
+    loadFavorites();
+  }, [user]);
+
+  const toggleFavorite = async (product) => {
+    const isFavorite = favorites.some(p => p.id === product.id);
+
+    // Optimistic update
+    let newFavs;
+    if (isFavorite) {
+      newFavs = favorites.filter(p => p.id !== product.id);
+    } else {
+      newFavs = [...favorites, product];
+    }
+    setFavorites(newFavs);
+
+    if (user) {
+      // Sync with backend
+      try {
+        const token = localStorage.getItem('token');
+        const url = `${import.meta.env.VITE_API_URL || 'http://localhost:5001/api'}/favorites`;
+        const method = isFavorite ? 'DELETE' : 'POST';
+        const endpoint = isFavorite ? `${url}/${product.id}` : url;
+        const body = isFavorite ? undefined : JSON.stringify({ productId: product.id });
+
+        await fetch(endpoint, {
+          method,
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body,
+          credentials: 'include'
+        });
+      } catch (error) {
+        console.error("Error syncing favorite:", error);
+        // Revert on error (optional, but good practice)
+      }
+    } else {
+      // Sync with local storage
       localStorage.setItem("royal_favorites", JSON.stringify(newFavs));
-      return newFavs;
-    });
+    }
   };
 
   const handleAddToCart = (product) => {

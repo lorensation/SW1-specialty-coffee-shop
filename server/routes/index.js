@@ -3,27 +3,29 @@ import authRoutes from './authRoutes.js';
 import userRoutes from './userRoutes.js';
 import productRoutes from './productRoutes.js';
 import reservationRoutes from './reservationRoutes.js';
+import favoriteRoutes from './favoriteRoutes.js';
 
 const router = express.Router();
 
-/**
- * Health check endpoint
- */
+// Health check
 router.get('/health', (req, res) => {
-  res.json({
-    success: true,
-    message: 'API is running',
-    timestamp: new Date().toISOString()
-  });
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-/**
- * API Routes
- */
+// Auth routes
 router.use('/auth', authRoutes);
-router.use('/users', userRoutes);
+
+// Product routes
 router.use('/products', productRoutes);
+
+// Reservation routes
 router.use('/reservations', reservationRoutes);
+
+// Favorite routes
+router.use('/favorites', favoriteRoutes);
+
+// User routes
+router.use('/users', userRoutes);
 
 /**
  * API Documentation endpoint

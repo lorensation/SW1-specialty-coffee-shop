@@ -1,119 +1,81 @@
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
 import User from '../models/User.js';
-import { ApiError, asyncHandler } from '../middlewares/errorHandler.js';
 
-/**
- * User Controller - Simplified
- * Handles user management endpoints
- */
-
-/**
- * @route   GET /api/users/profile
- * @desc    Get user profile
- * @access  Private
- */
-export const getProfile = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user.id);
-
-  if (!user) {
-    throw new ApiError(404, 'User not found');
+// Configure multer storage
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadDir = 'uploads/avatars';
+    // Create directory if it doesn't exist
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: function (req, file, cb) {
+    // Rename file to avoid collisions: user_id-timestamp.ext
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, req.user.id + '-' + uniqueSuffix + path.extname(file.originalname));
   }
-
-  res.json({
-    success: true,
-    data: { user },
-  });
 });
 
-/**
- * @route   PUT /api/users/profile
- * @desc    Update user profile
- * @access  Private
- */
-export const updateProfile = asyncHandler(async (req, res) => {
-  const { name, email } = req.body;
-
-  const updates = {};
-  if (name) updates.name = name;
-  if (email) updates.email = email;
-
-  const user = await User.update(req.user.id, updates);
-
-  res.json({
-    success: true,
-    message: 'Profile updated successfully',
-    data: { user },
-  });
-});
-
-/**
- * @route   GET /api/users
- * @desc    Get all users (admin)
- * @access  Private (Admin)
- */
-export const getAllUsers = asyncHandler(async (req, res) => {
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 20;
-  const role = req.query.role;
-
-  const result = await User.getAll({ page, limit, role });
-
-  res.json({
-    success: true,
-    data: result,
-  });
-});
-
-/**
- * @route   GET /api/users/:id
- * @desc    Get user by ID (admin)
- * @access  Private (Admin)
- */
-export const getUserById = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.params.id);
-
-  if (!user) {
-    throw new ApiError(404, 'User not found');
+// File filter
+const fileFilter = (req, file, cb) => {
+  // Accept images only
+  if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
+    return cb(new Error('Only image files are allowed!'), false);
   }
+  cb(null, true);
+};
 
-  res.json({
-    success: true,
-    data: { user },
-  });
+export const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  },
+  fileFilter: fileFilter
 });
 
 /**
- * @route   PUT /api/users/:id
- * @desc    Update user (admin)
- * @access  Private (Admin)
+ * Upload User Avatar
+ * POST /api/users/avatar
  */
-export const updateUser = asyncHandler(async (req, res) => {
-  const { name, email, role, is_active } = req.body;
+export const uploadAvatar = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'No file uploaded'
+      });
+    }
 
-  const updates = {};
-  if (name !== undefined) updates.name = name;
-  if (email !== undefined) updates.email = email;
-  if (role !== undefined) updates.role = role;
-  if (is_active !== undefined) updates.is_active = is_active;
+    // Construct public URL for the file
+    // Assuming server serves 'uploads' directory at /uploads
+    const avatarUrl = `/uploads/avatars/${req.file.filename}`;
 
-  const user = await User.update(req.params.id, updates);
+    // Update user in database
+    const updatedUser = await User.update(req.user.id, { avatar_url: avatarUrl });
 
-  res.json({
-    success: true,
-    message: 'User updated successfully',
-    data: { user },
-  });
-});
+    res.json({
+      success: true,
+      message: 'Avatar uploaded successfully',
+      data: {
+        avatar_url: updatedUser.avatar_url
+      }
+    });
+  } catch (error) {
+    // Delete uploaded file if database update fails
+    if (req.file) {
+      fs.unlink(req.file.path, (err) => {
+        if (err) console.error('Error deleting file after failed update:', err);
+      });
+    }
+    next(error);
+  }
+};
 
-/**
- * @route   DELETE /api/users/:id
- * @desc    Delete user (admin)
- * @access  Private (Admin)
- */
-export const deleteUser = asyncHandler(async (req, res) => {
-  await User.delete(req.params.id);
-
-  res.json({
-    success: true,
-    message: 'User deleted successfully',
-  });
-});
+export default {
+  upload,
+  uploadAvatar
+};

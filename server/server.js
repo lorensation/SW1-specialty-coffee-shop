@@ -41,6 +41,9 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Cookie parsing middleware
 app.use(cookieParser(config.cookie.secret));
 
+// Serve static files from uploads directory
+app.use('/uploads', express.static('uploads'));
+
 // ========================================
 // ROUTES
 // ========================================
@@ -79,12 +82,12 @@ const startServer = async () => {
     // Test database connection
     console.log('🔍 Testing database connection...');
     const dbConnected = await testConnection();
-    
+
     if (!dbConnected) {
       console.error('❌ Failed to connect to database. Please check your Supabase configuration.');
       process.exit(1);
     }
-    
+
     // Start server
     const PORT = config.port;
     app.listen(PORT, () => {

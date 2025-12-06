@@ -10,6 +10,8 @@ import Menu from "./pages/Menu/Menu.jsx";
 import Booking from "./pages/Booking/Booking.jsx";
 import Feed from "./pages/Feed/Feed.jsx";
 import Account from "./pages/Account/Account.jsx";
+import ForgotPassword from "./pages/Account/ForgotPassword.jsx";
+import ResetPassword from "./pages/Account/ResetPassword.jsx";
 import Cart from "./pages/Cart/Cart.jsx";
 
 import { AuthProvider } from "./context/AuthContext.jsx";
@@ -28,6 +30,8 @@ const router = createBrowserRouter([
       { path: "booking", element: <Booking /> },
       { path: "feed", element: <Feed /> },
       { path: "account", element: <Account /> },
+      { path: "forgot-password", element: <ForgotPassword /> },
+      { path: "reset-password", element: <ResetPassword /> },
       {
         path: "cart",
         element: <Cart />

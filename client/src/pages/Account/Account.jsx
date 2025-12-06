@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
+import "./Account.css";
 
 export default function Account() {
   const { user, login, register, logout } = useAuth();
@@ -122,25 +124,95 @@ export default function Account() {
 
   // Estado para favoritos
   const [favoritos, setFavoritos] = useState([]);
+  const [reservas, setReservas] = useState([]);
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem("royal_favorites");
-      if (saved) {
-        setFavoritos(JSON.parse(saved));
-      }
-    } catch (e) {
-      console.error("Error cargando favoritos", e);
-    }
-  }, []);
+    const fetchData = async () => {
+      if (!user) return;
 
-  const removeFavorite = (id) => {
-    const newFavs = favoritos.filter(f => f.id !== id);
-    setFavoritos(newFavs);
-    localStorage.setItem("royal_favorites", JSON.stringify(newFavs));
+      try {
+        const token = localStorage.getItem('token'); // Assuming token is stored here
+        const headers = {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        };
+
+        // Fetch Favorites
+        const favResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5001/api'}/favorites`, {
+          headers,
+          credentials: 'include'
+        });
+        const favData = await favResponse.json();
+        if (favData.success) {
+          setFavoritos(favData.data);
+        }
+
+        // Fetch Reservations
+        const resResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5001/api'}/reservations/user/me`, {
+          headers,
+          credentials: 'include'
+        });
+        const resData = await resResponse.json();
+        if (resData.success) {
+          setReservas(resData.data);
+        }
+
+      } catch (e) {
+        console.error("Error loading account data", e);
+      }
+    };
+
+    fetchData();
+  }, [user]);
+
+  const removeFavorite = async (id) => {
+    try {
+      const token = localStorage.getItem('token');
+      await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5001/api'}/favorites/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+      });
+      setFavoritos(prev => prev.filter(f => f.id !== id));
+    } catch (error) {
+      console.error("Error removing favorite", error);
+    }
   };
 
-  const reservas = ["19/07/2025 – 2 pax", "20/08/2025 – 3 pax", "24/08/2025 – 2 pax"];
+
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('avatar', file);
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5001/api'}/users/avatar`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        // Update user context or local state if needed
+        // For now, we might need to reload or update the user object in context
+        // Assuming the context updates automatically or we force a reload
+        window.location.reload();
+      } else {
+        console.error('Upload failed:', data.message);
+      }
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+    }
+  };
 
   return (
     <main className="account-page">
@@ -156,30 +228,50 @@ export default function Account() {
       {/* Cabecera */}
       <section className="account-header">
         <div className="account-avatar">
-          {/* Placeholder icon (SVG) */}
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-            <circle cx="12" cy="7" r="4"></circle>
-          </svg>
+          {user && user.avatar_url ? (
+            <img
+              src={`${(import.meta.env.VITE_API_URL || 'http://localhost:5001/api').replace('/api', '')}${user.avatar_url}`}
+              alt="Profile"
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+          ) : (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+          )}
+          {user && (
+            <label className="avatar-upload-label">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarUpload}
+                style={{ display: 'none' }}
+              />
+              <div className="avatar-edit-icon">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+              </div>
+            </label>
+          )}
         </div>
         <div className="account-info">
           {user ? (
             <>
               <h2>{user.name}</h2>
               <p>{user.email}</p>
+              <button onClick={logout} className="btn btn-outline btn-sm">
+                Cerrar sesión
+              </button>
             </>
           ) : (
-            <div style={{ color: "var(--muted)" }}>¿Aún no tienes cuenta?</div>
-          )}
-        </div>
-        <div className="account-ctas">
-          {!user ? (
-            <>
+            <div className="user-info">
+              <div style={{ color: "var(--muted)" }}>¿Aún no tienes cuenta?</div>
               <button className="btn btn-primary" onClick={() => setShowLogin(true)}>Iniciar sesión</button>
               <button className="btn btn-outline" onClick={() => setShowRegister(true)}>Registrarse</button>
-            </>
-          ) : (
-            <button className="btn btn-outline" onClick={logout}>Cerrar sesión</button>
+            </div>
           )}
         </div>
       </section>
@@ -189,10 +281,28 @@ export default function Account() {
         <article className="account-card">
           <h3>Mis reservas</h3>
           <ul className="account-list">
-            {reservas.map((r, i) => (<li key={i}>{r}</li>))}
+            {reservas.length === 0 ? (
+              <li style={{ color: "var(--muted)", fontStyle: "italic" }}>No tienes reservas activas.</li>
+            ) : (
+              reservas.map((r) => (
+                <li key={r.id}>
+                  {new Date(r.reservation_date).toLocaleDateString()} – {r.reservation_time.slice(0, 5)} – {r.num_people} pax
+                  <span style={{
+                    marginLeft: '10px',
+                    fontSize: '0.8em',
+                    padding: '2px 6px',
+                    borderRadius: '4px',
+                    background: r.status === 'confirmed' ? '#e8f5e9' : '#fff3e0',
+                    color: r.status === 'confirmed' ? '#2e7d32' : '#ef6c00'
+                  }}>
+                    {r.status === 'confirmed' ? 'Confirmada' : 'Pendiente'}
+                  </span>
+                </li>
+              ))
+            )}
           </ul>
           <div style={{ marginTop: ".75rem" }}>
-            <a className="btn btn-primary" href="/menu">Realizar nuevo pedido</a>
+            <a className="btn btn-primary" href="/booking">Realizar nuevo pedido</a>
           </div>
         </article>
 
@@ -254,202 +364,107 @@ export default function Account() {
       </div>
 
       {/* Login Modal */}
-      {showLogin && (
-        <div className="modal-overlay" onClick={closeModals}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close" onClick={closeModals}>&times;</button>
-            <h2>Iniciar sesión</h2>
-            <form onSubmit={handleLogin}>
-              <div className="form-group">
-                <label htmlFor="login-email">Correo electrónico</label>
-                <input
-                  id="login-email"
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  required
-                  disabled={loading}
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="login-password">Contraseña</label>
-                <input
-                  id="login-password"
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  required
-                  disabled={loading}
-                />
-              </div>
-              {error && <div className="error-message">{error}</div>}
-              <button type="submit" className="btn btn-primary" disabled={loading}>
-                {loading ? "Iniciando sesión..." : "Iniciar sesión"}
-              </button>
-            </form>
+      {
+        showLogin && (
+          <div className="modal-overlay" onClick={closeModals}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <button className="modal-close" onClick={closeModals}>&times;</button>
+              <h2>Iniciar sesión</h2>
+              <form onSubmit={handleLogin}>
+                <div className="form-group">
+                  <label htmlFor="login-email">Correo electrónico</label>
+                  <input
+                    id="login-email"
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    required
+                    disabled={loading}
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="login-password">Contraseña</label>
+                  <input
+                    id="login-password"
+                    type="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    required
+                    disabled={loading}
+                  />
+                </div>
+                {error && <div className="error-message">{error}</div>}
+                <button type="submit" className="btn btn-primary" disabled={loading}>
+                  {loading ? "Iniciando sesión..." : "Iniciar sesión"}
+                </button>
+                <div style={{ marginTop: "1rem", textAlign: "center", fontSize: "0.9rem" }}>
+                  <Link to="/forgot-password" onClick={closeModals} style={{ color: "var(--primary)", textDecoration: "none" }}>
+                    ¿Olvidaste tu contraseña?
+                  </Link>
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* Register Modal */}
-      {showRegister && (
-        <div className="modal-overlay" onClick={closeModals}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close" onClick={closeModals}>&times;</button>
-            <h2>Registrarse</h2>
-            <form onSubmit={handleRegister}>
-              <div className="form-group">
-                <label htmlFor="register-name">Nombre</label>
-                <input
-                  id="register-name"
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  required
-                  disabled={loading}
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="register-email">Correo electrónico</label>
-                <input
-                  id="register-email"
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  required
-                  disabled={loading}
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="register-password">Contraseña</label>
-                <input
-                  id="register-password"
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  required
-                  minLength={8}
-                  disabled={loading}
-                />
-                <small>Mínimo 8 caracteres, debe incluir mayúsculas, minúsculas y números</small>
-              </div>
-              {error && <div className="error-message">{error}</div>}
-              <button type="submit" className="btn btn-primary" disabled={loading}>
-                {loading ? "Registrando..." : "Registrarse"}
-              </button>
-            </form>
+      {
+        showRegister && (
+          <div className="modal-overlay" onClick={closeModals}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <button className="modal-close" onClick={closeModals}>&times;</button>
+              <h2>Registrarse</h2>
+              <form onSubmit={handleRegister}>
+                <div className="form-group">
+                  <label htmlFor="register-name">Nombre</label>
+                  <input
+                    id="register-name"
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    required
+                    disabled={loading}
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="register-email">Correo electrónico</label>
+                  <input
+                    id="register-email"
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    required
+                    disabled={loading}
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="register-password">Contraseña</label>
+                  <input
+                    id="register-password"
+                    type="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    required
+                    minLength={8}
+                    disabled={loading}
+                  />
+                  <small>Mínimo 8 caracteres, debe incluir mayúsculas, minúsculas y números</small>
+                </div>
+                {error && <div className="error-message">{error}</div>}
+                <button type="submit" className="btn btn-primary" disabled={loading}>
+                  {loading ? "Registrando..." : "Registrarse"}
+                </button>
+              </form>
+            </div>
           </div>
-        </div>
-      )}
-
-      <style>{`
-        .success-notification {
-          position: fixed;
-          top: 2rem;
-          right: 2rem;
-          background: #4caf50;
-          color: white;
-          padding: 1rem 1.5rem;
-          border-radius: 4px;
-          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-          z-index: 2000;
-          animation: slideIn 0.3s ease-out;
-        }
-
-        @keyframes slideIn {
-          from {
-            transform: translateX(100%);
-            opacity: 0;
-          }
-          to {
-            transform: translateX(0);
-            opacity: 1;
-          }
-        }
-
-        .modal-overlay {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: rgba(0, 0, 0, 0.7);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 1000;
-        }
-
-        .modal-content {
-          background: var(--background, white);
-          padding: 2rem;
-          border-radius: 8px;
-          max-width: 400px;
-          width: 90%;
-          position: relative;
-          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .modal-close {
-          position: absolute;
-          top: 1rem;
-          right: 1rem;
-          background: none;
-          border: none;
-          font-size: 2rem;
-          cursor: pointer;
-          color: var(--text, #333);
-          line-height: 1;
-        }
-
-        .modal-content h2 {
-          margin-top: 0;
-          margin-bottom: 1.5rem;
-        }
-
-        .form-group {
-          margin-bottom: 1rem;
-        }
-
-        .form-group label {
-          display: block;
-          margin-bottom: 0.5rem;
-          font-weight: 500;
-        }
-
-        .form-group input {
-          width: 100%;
-          padding: 0.5rem;
-          border: 1px solid var(--border, #ddd);
-          border-radius: 4px;
-          font-size: 1rem;
-        }
-
-        .form-group small {
-          display: block;
-          margin-top: 0.25rem;
-          color: var(--muted, #666);
-          font-size: 0.85rem;
-        }
-
-        .error-message {
-          color: #d32f2f;
-          background: #ffebee;
-          padding: 0.75rem;
-          border-radius: 4px;
-          margin-bottom: 1rem;
-        }
-
-        .modal-content .btn {
-          width: 100%;
-          margin-top: 0.5rem;
-        }
-      `}</style>
-    </main>
+        )
+      }
+    </main >
   );
 }

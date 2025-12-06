@@ -102,3 +102,35 @@ export const getCurrentUser = asyncHandler(async (req, res) => {
     data: { user: req.user },
   });
 });
+
+/**
+ * @route   POST /api/auth/forgot-password
+ * @desc    Request password reset
+ * @access  Public
+ */
+export const forgotPassword = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+
+  await AuthService.forgotPassword(email);
+
+  res.json({
+    success: true,
+    message: 'If an account with that email exists, we have sent a password reset link.',
+  });
+});
+
+/**
+ * @route   POST /api/auth/reset-password
+ * @desc    Reset password
+ * @access  Public
+ */
+export const resetPassword = asyncHandler(async (req, res) => {
+  const { token, password } = req.body;
+
+  await AuthService.resetPassword(token, password);
+
+  res.json({
+    success: true,
+    message: 'Password has been reset successfully',
+  });
+});

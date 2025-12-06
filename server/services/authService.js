@@ -1,5 +1,6 @@
 import User from '../models/User.js';
 import Session from '../models/Session.js';
+import emailService from './emailService.js';
 
 /**
  * Authentication Service - Simplified
@@ -91,6 +92,48 @@ class AuthService {
     }
 
     return user;
+  }
+
+  /**
+   * Forgot password
+   */
+  static async forgotPassword(email) {
+    const user = await User.findByEmail(email);
+    if (!user) {
+      // Don't reveal that user doesn't exist
+      return true;
+    }
+
+    // Generate random token
+    const resetToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    const expires = new Date(Date.now() + 3600000); // 1 hour
+
+    // Save token to user
+    await User.saveResetToken(email, resetToken, expires);
+
+    // Send email
+    await emailService.sendPasswordResetEmail(user, resetToken);
+
+    return true;
+  }
+
+  /**
+   * Reset password
+   */
+  static async resetPassword(token, newPassword) {
+    const user = await User.findByResetToken(token);
+    if (!user) {
+      throw new Error('Invalid or expired token');
+    }
+
+    // Update password and clear token
+    await User.update(user.id, {
+      password: newPassword,
+      reset_password_token: null,
+      reset_password_expires: null,
+    });
+
+    return true;
   }
 }
 
