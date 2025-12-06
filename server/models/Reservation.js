@@ -111,7 +111,7 @@ class ReservationModel {
         .from('reservations')
         .select(`
           *,
-          users(name, email, phone)
+          users(name, email)
         `)
         .eq('id', id)
         .single();
@@ -195,7 +195,7 @@ class ReservationModel {
     try {
       const { data, error } = await supabaseAdmin
         .from('reservations')
-        .update({ status: 'cancelled' })
+        .delete()
         .eq('id', id)
         .select()
         .single();

@@ -173,8 +173,28 @@ export default function Booking() {
 
             <div className="form-row">
               <label htmlFor="time">Hora</label>
-              <input id="time" name="time" type="time" className="input"
-                value={form.time} onChange={onChange} disabled={loading} />
+              <select
+                id="time"
+                name="time"
+                className="select"
+                value={form.time}
+                onChange={onChange}
+                disabled={loading}
+              >
+                <option value="">Selecciona una hora</option>
+                {(() => {
+                  const slots = [];
+                  let start = 9 * 60; // 9:00
+                  const end = 22 * 60; // 22:00
+                  while (start <= end) {
+                    const h = Math.floor(start / 60).toString().padStart(2, '0');
+                    const m = (start % 60).toString().padStart(2, '0');
+                    slots.push(`${h}:${m}`);
+                    start += 30;
+                  }
+                  return slots.map(t => <option key={t} value={t}>{t}</option>);
+                })()}
+              </select>
             </div>
 
             <div className="form-row">
@@ -197,7 +217,7 @@ export default function Booking() {
             <h3 style={{ marginTop: 0 }}>Dónde encontrarnos</h3>
             <div className="map-box" style={{ overflow: "hidden", borderRadius: "10px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
               <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3037.123456789!2d-3.703790!3d40.416775!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd42288000000001%3A0x0!2sPuerta%20del%20Sol!5e0!3m2!1ses!2ses!4v1700000000000!5m2!1ses!2ses"
+                src="https://maps.google.com/maps?q=Calle+de+la+Princesa,+10,+Madrid&t=&z=15&ie=UTF8&iwloc=&output=embed"
                 width="100%"
                 height="100%"
                 style={{ border: 0, minHeight: "340px", display: "block" }}

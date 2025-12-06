@@ -1,5 +1,5 @@
 import { Outlet, NavLink } from "react-router-dom";
-export default function Layout(){
+export default function Layout() {
   return (
     <div className="app">
       <nav className="nav">
@@ -13,7 +13,9 @@ export default function Layout(){
         <NavLink to="/cart">Carrito</NavLink>
       </nav>
       <main className="container"><Outlet /></main>
-      <footer className="footer">© RoyalCoffee</footer>
+      <footer className="footer">
+        Royal Coffee | Calle de la Princesa, 10, Madrid | Tel: +34 91 123 45 67
+      </footer>
     </div>
   );
 }

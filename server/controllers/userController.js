@@ -75,7 +75,36 @@ export const uploadAvatar = async (req, res, next) => {
   }
 };
 
+export const deleteAvatar = async (req, res, next) => {
+  try {
+    // Get current user to find the file path
+    const user = await User.findById(req.user.id);
+
+    if (user.avatar_url) {
+      // Extract filename from URL
+      const filename = user.avatar_url.split('/').pop();
+      const filePath = path.join('uploads/avatars', filename);
+
+      // Delete file if it exists
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+
+      // Update user record
+      await User.update(req.user.id, { avatar_url: null });
+    }
+
+    res.json({
+      success: true,
+      message: 'Avatar deleted successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export default {
   upload,
-  uploadAvatar
+  uploadAvatar,
+  deleteAvatar
 };

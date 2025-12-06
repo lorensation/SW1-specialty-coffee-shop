@@ -19,4 +19,10 @@ router.post(
     asyncHandler(userController.uploadAvatar)
 );
 
+router.delete(
+    '/avatar',
+    authenticate,
+    asyncHandler(userController.deleteAvatar)
+);
+
 export default router;

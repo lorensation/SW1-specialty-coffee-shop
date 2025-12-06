@@ -154,7 +154,8 @@ export default function Account() {
         });
         const resData = await resResponse.json();
         if (resData.success) {
-          setReservas(resData.data);
+          // Filter out cancelled reservations
+          setReservas(resData.data.filter(r => r.status !== 'cancelled'));
         }
 
       } catch (e) {
@@ -183,6 +184,8 @@ export default function Account() {
   };
 
 
+  const [showAvatarMenu, setShowAvatarMenu] = useState(false);
+
   const handleAvatarUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -197,20 +200,72 @@ export default function Account() {
         headers: {
           'Authorization': `Bearer ${token}`
         },
+        credentials: 'include',
         body: formData
       });
 
       const data = await response.json();
       if (data.success) {
-        // Update user context or local state if needed
-        // For now, we might need to reload or update the user object in context
-        // Assuming the context updates automatically or we force a reload
         window.location.reload();
       } else {
         console.error('Upload failed:', data.message);
       }
     } catch (error) {
       console.error('Error uploading avatar:', error);
+    }
+  };
+
+  const handleDeleteAvatar = async () => {
+    if (!window.confirm("¿Estás seguro de que quieres eliminar tu foto de perfil?")) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5001/api'}/users/avatar`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        credentials: 'include'
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        window.location.reload();
+      } else {
+        console.error('Delete failed:', data.message);
+      }
+    } catch (error) {
+      console.error('Error deleting avatar:', error);
+    }
+  };
+
+  const cancelReservation = async (id) => {
+    if (!window.confirm("¿Estás seguro de que quieres cancelar esta reserva?")) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5001/api'}/reservations/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Update local state to remove the cancelled reservation
+        setReservas(prev => prev.filter(r => r.id !== id));
+        setSuccess("Reserva cancelada correctamente");
+        setTimeout(() => setSuccess(""), 3000);
+      } else {
+        setError(data.message || "Error al cancelar la reserva");
+      }
+    } catch (error) {
+      console.error("Error cancelling reservation", error);
+      setError("Error de conexión al cancelar la reserva");
     }
   };
 
@@ -241,20 +296,38 @@ export default function Account() {
             </svg>
           )}
           {user && (
-            <label className="avatar-upload-label">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleAvatarUpload}
-                style={{ display: 'none' }}
-              />
-              <div className="avatar-edit-icon">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                </svg>
+            <>
+              <div className="avatar-wrapper" onClick={() => setShowAvatarMenu(!showAvatarMenu)}>
+                <div className="avatar-edit-icon">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                  </svg>
+                </div>
               </div>
-            </label>
+
+              {showAvatarMenu && (
+                <div className="avatar-menu">
+                  <label className="avatar-menu-item">
+                    Cambiar foto
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleAvatarUpload}
+                      style={{ display: 'none' }}
+                    />
+                  </label>
+                  {user.avatar_url && (
+                    <button className="avatar-menu-item delete" onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteAvatar();
+                    }}>
+                      Eliminar foto
+                    </button>
+                  )}
+                </div>
+              )}
+            </>
           )}
         </div>
         <div className="account-info">
@@ -285,18 +358,29 @@ export default function Account() {
               <li style={{ color: "var(--muted)", fontStyle: "italic" }}>No tienes reservas activas.</li>
             ) : (
               reservas.map((r) => (
-                <li key={r.id}>
-                  {new Date(r.reservation_date).toLocaleDateString()} – {r.reservation_time.slice(0, 5)} – {r.num_people} pax
-                  <span style={{
-                    marginLeft: '10px',
-                    fontSize: '0.8em',
-                    padding: '2px 6px',
-                    borderRadius: '4px',
-                    background: r.status === 'confirmed' ? '#e8f5e9' : '#fff3e0',
-                    color: r.status === 'confirmed' ? '#2e7d32' : '#ef6c00'
-                  }}>
-                    {r.status === 'confirmed' ? 'Confirmada' : 'Pendiente'}
-                  </span>
+                <li key={r.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    {new Date(r.reservation_date).toLocaleDateString()} – {r.reservation_time.slice(0, 5)} – {r.num_people} pax
+                    <span style={{
+                      marginLeft: '10px',
+                      fontSize: '0.8em',
+                      padding: '2px 6px',
+                      borderRadius: '4px',
+                      background: r.status === 'confirmed' ? '#e8f5e9' : r.status === 'cancelled' ? '#ffebee' : '#fff3e0',
+                      color: r.status === 'confirmed' ? '#2e7d32' : r.status === 'cancelled' ? '#c62828' : '#ef6c00'
+                    }}>
+                      {r.status === 'confirmed' ? 'Confirmada' : r.status === 'cancelled' ? 'Cancelada' : 'Pendiente'}
+                    </span>
+                  </div>
+                  {r.status !== 'cancelled' && (
+                    <button
+                      onClick={() => cancelReservation(r.id)}
+                      className="btn btn-outline btn-sm"
+                      style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem', marginLeft: '1rem', borderColor: '#e74c3c', color: '#e74c3c' }}
+                    >
+                      Cancelar
+                    </button>
+                  )}
                 </li>
               ))
             )}
