@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
+import reservationService from "../../services/reservationService.js";
 import "./Account.css";
 
 export default function Account() {
@@ -277,6 +278,54 @@ export default function Account() {
     }
   };
 
+  // Edit Reservation Logic
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingReservation, setEditingReservation] = useState(null);
+  const [editFormData, setEditFormData] = useState({
+    reservation_date: '',
+    reservation_time: '',
+    num_people: 1
+  });
+
+  const openEditModal = (reservation) => {
+    setEditingReservation(reservation);
+    setEditFormData({
+      reservation_date: reservation.reservation_date.split('T')[0],
+      reservation_time: reservation.reservation_time,
+      num_people: reservation.num_people
+    });
+    setShowEditModal(true);
+  };
+
+  const handleEditInputChange = (e) => {
+    setEditFormData({ ...editFormData, [e.target.name]: e.target.value });
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      const result = await reservationService.updateReservation(editingReservation.id, editFormData);
+
+      if (result.success) {
+        // Update local state
+        setReservas(prev => prev.map(r => r.id === editingReservation.id ? result.data : r));
+        setSuccess("Reserva modificada correctamente");
+        setTimeout(() => setSuccess(""), 3000);
+        setShowEditModal(false);
+      } else {
+        setError(result.message || "Error al modificar la reserva");
+      }
+    } catch (error) {
+      console.error("Error updating reservation", error);
+      setError("Error al modificar la reserva");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <main className="account-page">
       <h1 className="account-title">Mi cuenta</h1>
@@ -381,13 +430,22 @@ export default function Account() {
                     </span>
                   </div>
                   {r.status !== 'cancelled' && (
-                    <button
-                      onClick={() => cancelReservation(r.id)}
-                      className="btn btn-outline btn-sm"
-                      style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem', marginLeft: '1rem', borderColor: '#e74c3c', color: '#e74c3c' }}
-                    >
-                      Cancelar
-                    </button>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <button
+                        onClick={() => openEditModal(r)}
+                        className="btn btn-outline btn-sm"
+                        style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem', borderColor: '#3498db', color: '#3498db' }}
+                      >
+                        Modificar
+                      </button>
+                      <button
+                        onClick={() => cancelReservation(r.id)}
+                        className="btn btn-outline btn-sm"
+                        style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem', borderColor: '#e74c3c', color: '#e74c3c' }}
+                      >
+                        Cancelar
+                      </button>
+                    </div>
                   )}
                 </li>
               ))
@@ -551,6 +609,66 @@ export default function Account() {
                 {error && <div className="error-message">{error}</div>}
                 <button type="submit" className="btn btn-primary" disabled={loading}>
                   {loading ? "Registrando..." : "Registrarse"}
+                </button>
+              </form>
+            </div>
+          </div>
+        )
+      }
+      {/* Edit Reservation Modal */}
+      {
+        showEditModal && (
+          <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <button className="modal-close" onClick={() => setShowEditModal(false)}>&times;</button>
+              <h2>Modificar Reserva</h2>
+              <form onSubmit={handleEditSubmit}>
+                <div className="form-group">
+                  <label htmlFor="edit-date">Fecha</label>
+                  <input
+                    id="edit-date"
+                    type="date"
+                    name="reservation_date"
+                    value={editFormData.reservation_date}
+                    onChange={handleEditInputChange}
+                    required
+                    min={new Date().toISOString().split('T')[0]}
+                    disabled={loading}
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="edit-time">Hora</label>
+                  <select
+                    id="edit-time"
+                    name="reservation_time"
+                    value={editFormData.reservation_time}
+                    onChange={handleEditInputChange}
+                    required
+                    disabled={loading}
+                  >
+                    <option value="">Selecciona una hora</option>
+                    {['09:00', '10:00', '11:00', '12:00', '13:00', '16:00', '17:00', '18:00', '19:00'].map(time => (
+                      <option key={time} value={time}>{time}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label htmlFor="edit-people">Personas</label>
+                  <input
+                    id="edit-people"
+                    type="number"
+                    name="num_people"
+                    value={editFormData.num_people}
+                    onChange={handleEditInputChange}
+                    required
+                    min="1"
+                    max="10"
+                    disabled={loading}
+                  />
+                </div>
+                {error && <div className="error-message">{error}</div>}
+                <button type="submit" className="btn btn-primary" disabled={loading}>
+                  {loading ? "Guardando..." : "Guardar Cambios"}
                 </button>
               </form>
             </div>
