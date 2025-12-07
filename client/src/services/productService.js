@@ -1,4 +1,4 @@
-import { get } from './api.js';
+import { get, post, put, del, patch, uploadFile } from './api.js';
 
 /**
  * Product Service
@@ -42,9 +42,34 @@ export const getFeaturedProducts = async () => {
   return await get('/products/featured');
 };
 
+export const createProduct = async (productData) => {
+  return await post('/products', productData);
+};
+
+export const updateProduct = async (id, productData) => {
+  return await put(`/products/${id}`, productData);
+};
+
+export const deleteProduct = async (id) => {
+  return await del(`/products/${id}`);
+};
+
+export const updateProductStock = async (id, quantity) => {
+  return await patch(`/products/${id}/stock`, { stock_quantity: quantity });
+};
+
+export const uploadImage = async (file) => {
+  return await uploadFile('/upload', file);
+};
+
 export default {
   getAllProducts,
   getProductsByCategory,
   getProductById,
   getFeaturedProducts,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+  updateProductStock,
+  uploadImage,
 };

@@ -103,8 +103,91 @@ export const deleteAvatar = async (req, res, next) => {
   }
 };
 
+/**
+ * Get all users (Admin)
+ * GET /api/users
+ */
+export const getAllUsers = async (req, res, next) => {
+  try {
+    const { page = 1, limit = 20, role } = req.query;
+
+    const result = await User.getAll({
+      page: parseInt(page),
+      limit: parseInt(limit),
+      role
+    });
+
+    res.json({
+      success: true,
+      data: result.users,
+      pagination: result.pagination
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Update user role (Admin)
+ * PATCH /api/users/:id/role
+ */
+export const updateUserRole = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { role } = req.body;
+
+    if (!['user', 'admin'].includes(role)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid role'
+      });
+    }
+
+    const updatedUser = await User.update(id, { role });
+
+    res.json({
+      success: true,
+      message: 'User role updated successfully',
+      data: updatedUser
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Update user status (Admin)
+ * PATCH /api/users/:id/status
+ */
+export const updateUserStatus = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { is_active } = req.body;
+
+    if (typeof is_active !== 'boolean') {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid status'
+      });
+    }
+
+    const updatedUser = await User.update(id, { is_active });
+
+    res.json({
+      success: true,
+      message: `User ${is_active ? 'activated' : 'suspended'} successfully`,
+      data: updatedUser
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export default {
   upload,
   uploadAvatar,
-  deleteAvatar
+  deleteAvatar,
+  getAllUsers,
+  updateUserRole,
+  updateUserStatus
 };

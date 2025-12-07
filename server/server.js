@@ -1,4 +1,5 @@
 import express from 'express';
+import http from 'http';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
@@ -7,6 +8,7 @@ import config from './config/config.js';
 import { testConnection } from './config/database.js';
 import routes from './routes/index.js';
 import { notFound, errorHandler } from './middlewares/errorHandler.js';
+import { initSocket } from './services/socketService.js';
 
 const app = express();
 
@@ -88,9 +90,15 @@ const startServer = async () => {
       process.exit(1);
     }
 
+    // Create HTTP server
+    const server = http.createServer(app);
+
+    // Initialize Socket.io
+    initSocket(server);
+
     // Start server
     const PORT = config.port;
-    app.listen(PORT, () => {
+    server.listen(PORT, () => {
       console.log('');
       console.log('========================================');
       console.log('  🚀 Royal Coffee API Server Started');

@@ -1,4 +1,4 @@
-import { get, post, put, del } from './api.js';
+import { get, post, put, del, patch } from './api.js';
 
 /**
  * Reservation Service
@@ -38,7 +38,7 @@ export const getReservationById = async (id) => {
  * @returns {Promise<object>} Updated reservation
  */
 export const updateReservationStatus = async (id, status) => {
-  return await put(`/reservations/${id}/status`, { status });
+  return await patch(`/reservations/${id}/status`, { status });
 };
 
 /**
@@ -60,11 +60,33 @@ export const checkAvailability = async (date, time) => {
   return await get(`/reservations/availability?date=${date}&time=${time}`);
 };
 
+/**
+ * Get all reservations (Admin)
+ * @param {object} params - Query parameters (page, limit, status, date)
+ * @returns {Promise<object>} List of reservations
+ */
+export const getAllReservations = async (params = {}) => {
+  const queryString = new URLSearchParams(params).toString();
+  return await get(`/reservations?${queryString}`);
+};
+
+/**
+ * Update reservation details
+ * @param {string} id - Reservation ID
+ * @param {object} data - Data to update
+ * @returns {Promise<object>} Updated reservation
+ */
+export const updateReservation = async (id, data) => {
+  return await put(`/reservations/${id}`, data);
+};
+
 export default {
   createReservation,
   getUserReservations,
+  getAllReservations,
   getReservationById,
   updateReservationStatus,
+  updateReservation,
   cancelReservation,
   checkAvailability,
 };

@@ -57,6 +57,8 @@ router.get(
   asyncHandler(productController.getProductById)
 );
 
+// ... (GET routes)
+
 /**
  * @route   POST /api/products
  * @desc    Create product (admin only)
