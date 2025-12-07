@@ -142,6 +142,17 @@ class ProductModel {
    */
   static async delete(id) {
     try {
+      // First delete from favorites to avoid FK constraint issues
+      const { error: favError } = await supabaseAdmin
+        .from('favorites')
+        .delete()
+        .eq('product_id', id);
+
+      if (favError) {
+        console.warn('Error deleting product favorites:', favError);
+        // Continue anyway as it might not exist or be critical
+      }
+
       const { data, error } = await supabaseAdmin
         .from('products')
         .delete()
