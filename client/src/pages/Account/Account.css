@@ -1,14 +1,4 @@
-:root {
-    --primary: var(--brand, #6b4f3a);
-    --primary-light: #f0e8df;
-    --primary-dark: #5a4230;
-    --text-primary: var(--ink, #221b17);
-    --text-secondary: var(--muted, #6b5f57);
-    --surface: #ffffff;
-    --background: var(--bg, #faf7f3);
-    --border: var(--line, #e7e0da);
-    --disabled: #cccccc;
-}
+/* :root block removed to allow global theme inheritance */
 
 .account-page {
     padding: 2rem;
@@ -19,7 +9,7 @@
 .account-title {
     font-size: 2rem;
     margin-bottom: 2rem;
-    color: var(--text-primary);
+    color: var(--ink);
 }
 
 .account-header {
@@ -37,11 +27,13 @@
     width: 80px;
     height: 80px;
     border-radius: 50%;
-    background: var(--primary-light);
+    background: var(--surface);
+    /* Fallback to surface if primary-light not good */
+    /* background: var(--line); */
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--primary);
+    color: var(--brand);
     position: relative;
     /* overflow: hidden; Removed to allow menu to show */
 }
@@ -86,7 +78,7 @@
     left: 50%;
     transform: translateX(-50%);
     background: var(--surface);
-    border: 1px solid var(--border);
+    border: 1px solid var(--line);
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     padding: 0.5rem;
@@ -98,7 +90,7 @@
 .avatar-menu-item {
     display: block;
     padding: 0.5rem 1rem;
-    color: var(--text-primary);
+    color: var(--ink);
     text-decoration: none;
     cursor: pointer;
     border-radius: 4px;
@@ -132,7 +124,7 @@
 
 .account-info p {
     margin: 0;
-    color: var(--text-secondary);
+    color: var(--muted);
 }
 
 .account-ctas {
@@ -158,7 +150,7 @@
     margin-top: 0;
     margin-bottom: 1.5rem;
     font-size: 1.25rem;
-    border-bottom: 2px solid var(--border);
+    border-bottom: 2px solid var(--line);
     padding-bottom: 0.5rem;
 }
 
@@ -170,7 +162,7 @@
 
 .account-list li {
     padding: 0.75rem 0;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid var(--line);
 }
 
 .account-list li:last-child {
@@ -187,7 +179,7 @@
 .switch {
     width: 48px;
     height: 24px;
-    background: var(--border);
+    background: var(--line);
     border-radius: 12px;
     position: relative;
     cursor: pointer;
@@ -195,7 +187,7 @@
 }
 
 .switch[data-on="true"] {
-    background: var(--primary);
+    background: var(--brand);
 }
 
 .switch::after {
@@ -205,7 +197,7 @@
     left: 2px;
     width: 20px;
     height: 20px;
-    background: white;
+    background: var(--surface);
     border-radius: 50%;
     transition: transform 0.3s;
 }
@@ -220,16 +212,16 @@
     gap: 2rem;
     margin-top: 4rem;
     padding-top: 2rem;
-    border-top: 1px solid var(--border);
+    border-top: 1px solid var(--line);
 }
 
 .account-footer a {
-    color: var(--text-secondary);
+    color: var(--muted);
     text-decoration: none;
 }
 
 .account-footer a:hover {
-    color: var(--primary);
+    color: var(--brand);
 }
 
 /* Auth Forms Styles */
@@ -253,12 +245,12 @@
     margin-top: 0;
     margin-bottom: 1rem;
     text-align: center;
-    color: var(--text-primary);
+    color: var(--ink);
 }
 
 .auth-description {
     text-align: center;
-    color: var(--text-secondary);
+    color: var(--muted);
     margin-bottom: 2rem;
     line-height: 1.5;
 }
@@ -271,13 +263,13 @@
     display: block;
     margin-bottom: 0.5rem;
     font-weight: 500;
-    color: var(--text-primary);
+    color: var(--ink);
 }
 
 .auth-form input {
     width: 100%;
     padding: 0.75rem;
-    border: 1px solid var(--border);
+    border: 1px solid var(--line);
     border-radius: 6px;
     font-size: 1rem;
     transition: border-color 0.2s;
@@ -285,14 +277,14 @@
 
 .auth-form input:focus {
     outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 2px var(--primary-light);
+    border-color: var(--brand);
+    box-shadow: 0 0 0 2px var(--brand);
 }
 
 .submit-btn {
     width: 100%;
     padding: 0.75rem;
-    background: var(--primary);
+    background: var(--brand);
     color: white;
     border: none;
     border-radius: 6px;
@@ -315,11 +307,11 @@
     margin-top: 1.5rem;
     text-align: center;
     font-size: 0.9rem;
-    color: var(--text-secondary);
+    color: var(--muted);
 }
 
 .auth-footer a {
-    color: var(--primary);
+    color: var(--brand);
     text-decoration: none;
     font-weight: 500;
 }
@@ -387,7 +379,7 @@
 }
 
 .modal-content {
-    background: var(--background, white);
+    background: var(--surface);
     padding: 2rem;
     border-radius: 8px;
     max-width: 400px;
@@ -404,7 +396,7 @@
     border: none;
     font-size: 2rem;
     cursor: pointer;
-    color: var(--text, #333);
+    color: var(--ink);
     line-height: 1;
 }
 

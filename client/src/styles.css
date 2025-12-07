@@ -12,12 +12,13 @@ body {
   gap: 1.5rem;
   align-items: center;
   padding: 1.25rem 2rem;
-  border-bottom: 1px solid #eee
+  border-bottom: 1px solid var(--line)
 }
 
 .nav a {
   text-decoration: none;
-  color: #333;
+  color: var(--ink);
+  /* Was #333 */
   font-size: 1.1rem;
   font-weight: 500
 }
@@ -70,6 +71,7 @@ ul {
   --muted: #6b5f57;
   --line: #e7e0da;
   --bg: #faf7f3;
+  --surface: #ffffff;
 }
 
 * {
@@ -123,7 +125,8 @@ body {
 }
 
 .section {
-  background: #fff;
+  background: var(--surface);
+  /* Was #fff */
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 1.5rem;
@@ -165,7 +168,8 @@ body {
   min-width: 280px;
   height: 340px;
   flex: 0 0 auto;
-  background: #fff;
+  background: var(--surface);
+  /* Was #fff */
   border: 1px solid var(--line);
   border-radius: 8px;
   display: flex;
@@ -280,7 +284,8 @@ body {
 /* ===== MENÚ ===== */
 .menu-page {
   padding: 1rem 0 4rem;
-  background: #faf7f3;
+  background: var(--bg);
+  /* Was #faf7f3 */
 }
 
 .menu-section {
@@ -334,13 +339,15 @@ body {
 .menu-card {
   flex: 0 0 300px;
   scroll-snap-align: start;
-  background: #fff;
-  border: 1px solid rgba(231, 224, 218, 0.4);
+  background: var(--surface);
+  /* Was #fff */
+  border: 1px solid var(--line);
+  /* Use var(--line) for consistency */
   border-radius: 20px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: 0 10px 30px rgba(107, 79, 58, 0.06);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
   transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
@@ -429,6 +436,7 @@ body {
   border: 0;
   background: var(--brand);
   color: #fff;
+  /* Keep white text for buttons unless contrast issue */
   border-radius: 8px;
   padding: 0.6rem 1rem;
   font-weight: 700;
@@ -458,8 +466,8 @@ body {
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  border: 1px solid rgba(107, 79, 58, 0.1);
-  background: #fff;
+  border: 1px solid var(--line);
+  background: var(--surface);
   color: var(--brand);
   cursor: pointer;
   z-index: 2;
@@ -539,6 +547,42 @@ body {
   }
 }
 
+/* Recommendation Card (Sidebar) */
+.rec-card {
+  display: flex;
+  gap: 0.8rem;
+  padding: 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  align-items: center;
+}
+
+.rec-img-box {
+  width: 60px;
+  height: 60px;
+  border-radius: 6px;
+  background: #f0f0f0;
+  /* Keeping neutral for placeholder */
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.rec-add-btn {
+  border: none;
+  background: var(--brand);
+  color: white;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.2rem;
+  padding: 0;
+}
+
 
 
 /* ===== RESERVAS / CONTACTO ===== */
@@ -566,7 +610,8 @@ body {
 }
 
 .booking-card {
-  background: #fff;
+  background: var(--surface);
+  /* Was #fff */
   border: 1px solid var(--line);
   border-radius: 10px;
   padding: 1rem;
@@ -595,7 +640,7 @@ body {
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: .6rem .7rem;
-  background: #fff;
+  background: var(--surface);
   color: var(--ink);
   font: inherit;
   outline: none;
@@ -712,7 +757,8 @@ body {
 }
 
 .feed-card {
-  background: #fff;
+  background: var(--surface);
+  /* Was #fff */
   border: 1px solid var(--line);
   border-radius: 10px;
   padding: 1rem;
@@ -757,7 +803,8 @@ body {
 }
 
 .feed-quote {
-  background: #fff;
+  background: var(--surface);
+  /* Was #fff */
   border: 1px solid var(--line);
   border-radius: 10px;
   padding: 1rem;
@@ -822,7 +869,7 @@ body {
 /* ===== MI CUENTA ===== */
 .account-page {
   padding: 1rem 0 4rem;
-  background: #faf7f3;
+  background: var(--bg);
   min-height: 80vh;
 }
 
@@ -842,10 +889,10 @@ body {
   grid-template-columns: 140px 1fr;
   align-items: center;
   margin-bottom: 3rem;
-  background: #fff;
+  background: var(--surface);
   padding: 2rem;
   border-radius: 16px;
-  border: 1px solid rgba(231, 224, 218, 0.6);
+  border: 1px solid var(--line);
   box-shadow: 0 4px 20px rgba(107, 79, 58, 0.06);
 }
 
@@ -853,8 +900,8 @@ body {
   width: 140px;
   height: 140px;
   border-radius: 50%;
-  background: #f0e8df;
-  border: 4px solid #fff;
+  background: var(--line);
+  border: 4px solid var(--surface);
   box-shadow: 0 8px 16px rgba(107, 79, 58, 0.15);
   display: flex;
   align-items: center;
@@ -947,8 +994,8 @@ body {
 }
 
 .account-card {
-  background: #fff;
-  border: 1px solid rgba(231, 224, 218, 0.6);
+  background: var(--surface);
+  border: 1px solid var(--line);
   border-radius: 16px;
   padding: 1.5rem;
   box-shadow: 0 4px 12px rgba(107, 79, 58, 0.05);
@@ -966,7 +1013,7 @@ body {
   margin: 0 0 1.25rem;
   color: var(--brand);
   font-size: 1.25rem;
-  border-bottom: 2px solid #f5f0ea;
+  border-bottom: 2px solid var(--line);
   padding-bottom: 0.75rem;
 }
 
@@ -980,7 +1027,7 @@ body {
 .account-list li {
   margin: 0.75rem 0;
   padding: 0.75rem;
-  background: #faf7f3;
+  background: var(--bg);
   border-radius: 8px;
   font-size: 0.95rem;
 }
@@ -1060,10 +1107,14 @@ body {
 
 /* ===== Tema oscuro (simple, por variables) ===== */
 body.theme-dark {
+  --brand: #c4a48c;
+  /* Lighter brand color for dark mode contrast */
   --bg: #1a1613;
+  --surface: #26201b;
   --ink: #f1ece6;
-  --muted: #cbbfb6;
+  --muted: #a89f99;
   --line: #3a2f27;
+
   background: var(--bg);
   color: var(--ink);
 }
@@ -1107,7 +1158,7 @@ body.theme-dark {
 }
 
 .cart-box {
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 10px;
   padding: 1rem;
@@ -1146,7 +1197,7 @@ body.theme-dark {
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: .4rem .6rem;
-  background: #fff;
+  background: var(--surface);
 }
 
 .cart-check {
@@ -1203,14 +1254,13 @@ body.theme-dark {
 }
 
 .rec-card {
-  height: 180px;
+  display: flex;
+  gap: 0.8rem;
+  padding: 0.8rem;
   border: 1px solid var(--line);
   border-radius: 10px;
-  background:
-    linear-gradient(135deg, #f5f0ea 25%, transparent 25%) -20px 0/40px 40px,
-    linear-gradient(225deg, #f5f0ea 25%, transparent 25%) -20px 0/40px 40px,
-    linear-gradient(315deg, #f5f0ea 25%, transparent 25%) 0 0/40px 40px,
-    linear-gradient(45deg, #f5f0ea 25%, transparent 25%) 0 0/40px 40px;
+  background: var(--surface);
+  align-items: center;
   margin-bottom: 1rem;
 }
 

@@ -101,23 +101,8 @@ export default function Cart() {
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
                 {recommended.map(prod => (
-                  <div key={prod.id} className="rec-card" style={{
-                    display: "flex",
-                    gap: "0.8rem",
-                    padding: "0.8rem",
-                    border: "1px solid #eee",
-                    borderRadius: "8px",
-                    background: "#fff",
-                    alignItems: "center"
-                  }}>
-                    <div style={{
-                      width: "60px",
-                      height: "60px",
-                      borderRadius: "6px",
-                      background: "#f0f0f0",
-                      overflow: "hidden",
-                      flexShrink: 0
-                    }}>
+                  <div key={prod.id} className="rec-card">
+                    <div className="rec-img-box">
                       {prod.image_url ? (
                         <img src={prod.image_url} alt={prod.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                       ) : (
@@ -136,20 +121,7 @@ export default function Cart() {
 
                     <button
                       onClick={() => addItem(prod)}
-                      style={{
-                        border: "none",
-                        background: "var(--brand)",
-                        color: "white",
-                        width: "30px",
-                        height: "30px",
-                        borderRadius: "50%",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        cursor: "pointer",
-                        fontSize: "1.2rem",
-                        padding: 0
-                      }}
+                      className="rec-add-btn"
                       title="Añadir al carrito"
                     >
                       +

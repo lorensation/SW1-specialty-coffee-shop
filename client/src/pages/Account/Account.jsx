@@ -5,7 +5,14 @@ import "./Account.css";
 
 export default function Account() {
   const { user, login, register, logout } = useAuth();
-  const [dark, setDark] = useState(false);
+  // Inicializar estado desde localStorage
+  const [dark, setDark] = useState(() => {
+    try {
+      return localStorage.getItem("theme") === "dark";
+    } catch {
+      return false;
+    }
+  });
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
   const [formData, setFormData] = useState({ name: "", email: "", password: "" });
@@ -13,9 +20,10 @@ export default function Account() {
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Modo oscuro (si ya tenías este bloque, déjalo igual)
+  // Efecto para aplicar la clase al body y guardar en localStorage
   useEffect(() => {
     document.body.classList.toggle("theme-dark", dark);
+    localStorage.setItem("theme", dark ? "dark" : "light");
   }, [dark]);
 
   const handleInputChange = (e) => {
