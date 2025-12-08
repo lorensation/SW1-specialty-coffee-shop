@@ -342,7 +342,10 @@ export default function Account() {
         <div className="account-avatar">
           {user && user.avatar_url ? (
             <img
-              src={`${(import.meta.env.VITE_API_URL || 'http://localhost:5001/api').replace('/api', '')}${user.avatar_url}`}
+              src={user.avatar_url.startsWith('http')
+                ? user.avatar_url
+                : `${(import.meta.env.VITE_API_URL || 'http://localhost:5001/api').replace('/api', '')}${user.avatar_url}`
+              }
               alt="Profile"
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
