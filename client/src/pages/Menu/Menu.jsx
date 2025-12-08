@@ -40,7 +40,15 @@ function Row({ title, category, loading, error, items, onAddClick }) {
             items.map(it => (
               <article key={it.id} className="menu-card">
                 {it.image_url ? (
-                  <img src={it.image_url} alt={it.name} className="menu-media" />
+                  <img 
+                    src={it.image_url} 
+                    alt={it.name} 
+                    className="menu-media"
+                    loading="lazy"
+                    decoding="async"
+                    width="320"
+                    height="200"
+                  />
                 ) : (
                   <div className="menu-media" aria-hidden="true" />
                 )}
@@ -300,6 +308,14 @@ export default function Menu() {
           height: 200px;
           object-fit: cover;
           border-radius: 8px 8px 0 0;
+          background: var(--border, #e0e0e0);
+          will-change: auto;
+          content-visibility: auto;
+        }
+
+        .menu-card img {
+          image-rendering: auto;
+          transform: translateZ(0);
         }
 
         .menu-add:disabled {

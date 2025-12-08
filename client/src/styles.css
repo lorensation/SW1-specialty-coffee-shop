@@ -311,6 +311,8 @@ body {
   scroll-snap-type: x mandatory;
   user-select: none;
   cursor: grab;
+  will-change: scroll-position;
+  contain: layout style paint;
 }
 
 .menu-track:active {
@@ -328,6 +330,8 @@ body {
   overflow: hidden;
   box-shadow: 0 4px 12px rgba(107, 79, 58, 0.05);
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  contain: layout style paint;
+  content-visibility: auto;
 }
 
 .menu-card:hover {
@@ -342,6 +346,9 @@ body {
   border-bottom: 1px solid var(--line);
   object-fit: cover;
   width: 100%;
+  display: block;
+  image-rendering: crisp-edges;
+  image-rendering: -webkit-optimize-contrast;
 }
 
 /* Cuerpo */
