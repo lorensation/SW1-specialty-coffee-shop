@@ -1,29 +1,15 @@
 import multer from 'multer';
 import path from 'path';
-import fs from 'fs';
+import { supabaseAdmin } from '../config/database.js';
 import User from '../models/User.js';
 
-// Configure multer storage
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const uploadDir = 'uploads/avatars';
-    // Create directory if it doesn't exist
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    // Rename file to avoid collisions: user_id-timestamp.ext
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, req.user.id + '-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
+// Configure multer storage (Memory Storage for Supabase Upload)
+const storage = multer.memoryStorage();
 
 // File filter
 const fileFilter = (req, file, cb) => {
   // Accept images only
-  if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
+  if (!file.originalname.match(/\.(jpg|jpeg|png|gif|webp)$/)) {
     return cb(new Error('Only image files are allowed!'), false);
   }
   cb(null, true);
@@ -50,12 +36,30 @@ export const uploadAvatar = async (req, res, next) => {
       });
     }
 
-    // Construct public URL for the file
-    // Assuming server serves 'uploads' directory at /uploads
-    const avatarUrl = `/uploads/avatars/${req.file.filename}`;
+    const file = req.file;
+    const fileExt = path.extname(file.originalname);
+    const fileName = `${req.user.id}-${Date.now()}${fileExt}`;
+    const filePath = `avatars/${fileName}`;
+
+    // Upload to Supabase Storage
+    const { data, error } = await supabaseAdmin
+      .storage
+      .from('avatars')
+      .upload(fileName, file.buffer, {
+        contentType: file.mimetype,
+        upsert: true
+      });
+
+    if (error) throw error;
+
+    // Get public URL
+    const { data: { publicUrl } } = supabaseAdmin
+      .storage
+      .from('avatars')
+      .getPublicUrl(fileName);
 
     // Update user in database
-    const updatedUser = await User.update(req.user.id, { avatar_url: avatarUrl });
+    const updatedUser = await User.update(req.user.id, { avatar_url: publicUrl });
 
     res.json({
       success: true,
@@ -65,12 +69,7 @@ export const uploadAvatar = async (req, res, next) => {
       }
     });
   } catch (error) {
-    // Delete uploaded file if database update fails
-    if (req.file) {
-      fs.unlink(req.file.path, (err) => {
-        if (err) console.error('Error deleting file after failed update:', err);
-      });
-    }
+    console.error('Avatar upload error:', error);
     next(error);
   }
 };
@@ -82,12 +81,19 @@ export const deleteAvatar = async (req, res, next) => {
 
     if (user.avatar_url) {
       // Extract filename from URL
-      const filename = user.avatar_url.split('/').pop();
-      const filePath = path.join('uploads/avatars', filename);
+      // URL format: https://.../storage/v1/object/public/avatars/filename.jpg
+      const urlParts = user.avatar_url.split('/');
+      const fileName = urlParts[urlParts.length - 1];
 
-      // Delete file if it exists
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
+      // Delete from Supabase Storage
+      const { error } = await supabaseAdmin
+        .storage
+        .from('avatars')
+        .remove([fileName]);
+
+      if (error) {
+        console.error('Error deleting avatar from storage:', error);
+        // Continue to update DB even if storage delete fails
       }
 
       // Update user record

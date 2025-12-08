@@ -22,7 +22,10 @@ export default function CommentCard({ comment, user, onDelete, onToggleStatus })
                 <div className="comment-user-info">
                     {comment.users?.avatar_url ? (
                         <img
-                            src={`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5001'}${comment.users.avatar_url}`}
+                            src={comment.users.avatar_url.startsWith('http')
+                                ? comment.users.avatar_url
+                                : `${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5001'}${comment.users.avatar_url}`
+                            }
                             alt={comment.users.name}
                             className="comment-avatar"
                         />
