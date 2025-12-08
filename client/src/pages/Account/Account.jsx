@@ -402,83 +402,109 @@ export default function Account() {
       <section className="account-grid">
         <article className="account-card">
           <h3>Mis reservas</h3>
-          <ul className="account-list">
-            {reservas.length === 0 ? (
-              <li style={{ color: "var(--muted)", fontStyle: "italic" }}>No tienes reservas activas.</li>
-            ) : (
-              reservas.map((r) => (
-                <li key={r.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    {new Date(r.reservation_date).toLocaleDateString()} – {r.reservation_time.slice(0, 5)} – {r.num_people} pax
-                    <span style={{
-                      marginLeft: '10px',
-                      fontSize: '0.8em',
-                      padding: '2px 6px',
-                      borderRadius: '4px',
-                      background: r.status === 'confirmed' ? '#e8f5e9' : r.status === 'cancelled' ? '#ffebee' : '#fff3e0',
-                      color: r.status === 'confirmed' ? '#2e7d32' : r.status === 'cancelled' ? '#c62828' : '#ef6c00'
-                    }}>
-                      {r.status === 'confirmed' ? 'Confirmada' : r.status === 'cancelled' ? 'Cancelada' : 'Pendiente'}
-                    </span>
-                  </div>
-                  {r.status !== 'cancelled' && (
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <button
-                        onClick={() => openEditModal(r)}
-                        className="btn btn-outline btn-sm"
-                        style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem', borderColor: '#3498db', color: '#3498db' }}
-                      >
-                        Modificar
-                      </button>
-                      <button
-                        onClick={() => cancelReservation(r.id)}
-                        className="btn btn-outline btn-sm"
-                        style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem', borderColor: '#e74c3c', color: '#e74c3c' }}
-                      >
-                        Cancelar
-                      </button>
-                    </div>
-                  )}
-                </li>
-              ))
-            )}
-          </ul>
-          <div style={{ marginTop: ".75rem" }}>
-            <a className="btn btn-primary" href="/booking">Realizar nuevo pedido</a>
-          </div>
+          {!user ? (
+            <div style={{ textAlign: 'center', padding: '2rem 0' }}>
+              <p style={{ color: "var(--muted)", fontSize: "1.1rem", marginBottom: "1rem" }}>
+                ¿Quieres gestionar tus reservas fácilmente?
+              </p>
+              <p style={{ color: "var(--ink)" }}>
+                Inicia sesión para ver, modificar y realizar nuevas reservas en un solo lugar.
+              </p>
+            </div>
+          ) : (
+            <>
+              <ul className="account-list">
+                {reservas.length === 0 ? (
+                  <li style={{ color: "var(--muted)", fontStyle: "italic" }}>No tienes reservas activas.</li>
+                ) : (
+                  reservas.map((r) => (
+                    <li key={r.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div>
+                        {new Date(r.reservation_date).toLocaleDateString()} – {r.reservation_time.slice(0, 5)} – {r.num_people} pax
+                        <span style={{
+                          marginLeft: '10px',
+                          fontSize: '0.8em',
+                          padding: '2px 6px',
+                          borderRadius: '4px',
+                          background: r.status === 'confirmed' ? '#e8f5e9' : r.status === 'cancelled' ? '#ffebee' : '#fff3e0',
+                          color: r.status === 'confirmed' ? '#2e7d32' : r.status === 'cancelled' ? '#c62828' : '#ef6c00'
+                        }}>
+                          {r.status === 'confirmed' ? 'Confirmada' : r.status === 'cancelled' ? 'Cancelada' : 'Pendiente'}
+                        </span>
+                      </div>
+                      {r.status !== 'cancelled' && (
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                          <button
+                            onClick={() => openEditModal(r)}
+                            className="btn btn-outline btn-sm"
+                            style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem', borderColor: '#3498db', color: '#3498db' }}
+                          >
+                            Modificar
+                          </button>
+                          <button
+                            onClick={() => cancelReservation(r.id)}
+                            className="btn btn-outline btn-sm"
+                            style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem', borderColor: '#e74c3c', color: '#e74c3c' }}
+                          >
+                            Cancelar
+                          </button>
+                        </div>
+                      )}
+                    </li>
+                  ))
+                )}
+              </ul>
+              <div style={{ marginTop: ".75rem" }}>
+                <a className="btn btn-primary" href="/booking">Realizar nuevo pedido</a>
+              </div>
+            </>
+          )}
         </article>
 
         <article className="account-card">
           <h3>Mis favoritos</h3>
-          {favoritos.length === 0 ? (
-            <p style={{ color: "var(--muted)", fontStyle: "italic" }}>No tienes productos favoritos aún.</p>
+          {!user ? (
+            <div style={{ textAlign: 'center', padding: '2rem 0' }}>
+              <p style={{ color: "var(--muted)", fontSize: "1.1rem", marginBottom: "1rem" }}>
+                ¿Quieres guardar tus productos favoritos?
+              </p>
+              <p style={{ color: "var(--ink)" }}>
+                Únete a nuestra comunidad y accede a tus cafés preferidos desde cualquier lugar.
+              </p>
+            </div>
           ) : (
-            <ul className="account-list" style={{ listStyle: "none", paddingLeft: 0 }}>
-              {favoritos.map((fav) => (
-                <li key={fav.id} style={{ display: "flex", alignItems: "center", marginBottom: "0.5rem", borderBottom: "1px solid #eee", paddingBottom: "0.5rem" }}>
-                  {fav.image_url ? (
-                    <img src={fav.image_url} alt={fav.name} style={{ width: "40px", height: "40px", objectFit: "cover", borderRadius: "4px", marginRight: "0.75rem" }} />
-                  ) : (
-                    <div style={{ width: "40px", height: "40px", background: "#eee", borderRadius: "4px", marginRight: "0.75rem" }} />
-                  )}
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: "bold" }}>{fav.name}</div>
-                    <div style={{ fontSize: "0.85rem", color: "var(--muted)" }}>{fav.price.toFixed(2)}€</div>
-                  </div>
-                  <button
-                    onClick={() => removeFavorite(fav.id)}
-                    style={{ background: "none", border: "none", cursor: "pointer", color: "#e74c3c", fontSize: "1.2rem" }}
-                    aria-label="Quitar de favoritos"
-                  >
-                    &times;
-                  </button>
-                </li>
-              ))}
-            </ul>
+            <>
+              {favoritos.length === 0 ? (
+                <p style={{ color: "var(--muted)", fontStyle: "italic" }}>No tienes productos favoritos aún.</p>
+              ) : (
+                <ul className="account-list" style={{ listStyle: "none", paddingLeft: 0 }}>
+                  {favoritos.map((fav) => (
+                    <li key={fav.id} style={{ display: "flex", alignItems: "center", marginBottom: "0.5rem", borderBottom: "1px solid #eee", paddingBottom: "0.5rem" }}>
+                      {fav.image_url ? (
+                        <img src={fav.image_url} alt={fav.name} style={{ width: "40px", height: "40px", objectFit: "cover", borderRadius: "4px", marginRight: "0.75rem" }} />
+                      ) : (
+                        <div style={{ width: "40px", height: "40px", background: "#eee", borderRadius: "4px", marginRight: "0.75rem" }} />
+                      )}
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontWeight: "bold" }}>{fav.name}</div>
+                        <div style={{ fontSize: "0.85rem", color: "var(--muted)" }}>{fav.price.toFixed(2)}€</div>
+                      </div>
+                      <button
+                        onClick={() => removeFavorite(fav.id)}
+                        style={{ background: "none", border: "none", cursor: "pointer", color: "#e74c3c", fontSize: "1.2rem" }}
+                        aria-label="Quitar de favoritos"
+                      >
+                        &times;
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <div style={{ marginTop: ".75rem" }}>
+                <a className="btn btn-outline" href="/menu">Ver menú completo</a>
+              </div>
+            </>
           )}
-          <div style={{ marginTop: ".75rem" }}>
-            <a className="btn btn-outline" href="/menu">Ver menú completo</a>
-          </div>
         </article>
 
         <article className="account-card">
