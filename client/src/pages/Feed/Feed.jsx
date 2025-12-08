@@ -1,73 +1,142 @@
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../context/AuthContext';
+import commentService from '../../services/commentService';
+import heroImage from '../../assets/about_1.jpg';
+import CommentCard from './CommentCard';
+import CommentForm from './CommentForm';
+import './Feed.css';
+
 export default function Feed() {
+  const { user } = useAuth();
+  const [comments, setComments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+
+  useEffect(() => {
+    fetchComments();
+  }, []);
+
+  const fetchComments = async () => {
+    try {
+      const response = await commentService.getAllComments();
+      if (response.success) {
+        setComments(response.data);
+      } else {
+        setError('Error al cargar comentarios');
+      }
+    } catch (err) {
+      console.error(err);
+      setError('Error de conexión');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateComment = async (commentData) => {
+    setSubmitting(true);
+    try {
+      const response = await commentService.createComment(commentData);
+      if (response.success) {
+        setShowForm(false);
+        fetchComments(); // Refresh list
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error al publicar');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('¿Estás seguro de eliminar este elemento?')) return;
+
+    try {
+      const response = await commentService.deleteComment(id);
+      if (response.success) {
+        setComments(prev => prev.filter(c => c.id !== id));
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error al eliminar');
+    }
+  };
+
+  const handleToggleStatus = async (id, currentStatus) => {
+    const newStatus = currentStatus === 'approved' ? 'hidden' : 'approved';
+    try {
+      const response = await commentService.updateCommentStatus(id, newStatus);
+      if (response.success) {
+        setComments(prev => prev.map(c =>
+          c.id === id ? { ...c, status: newStatus } : c
+        ));
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error al cambiar estado');
+    }
+  };
+
+  const scrollToForm = () => {
+    setShowForm(true);
+    setTimeout(() => {
+      document.getElementById('comment-form-section')?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+  };
+
   return (
     <main className="feed-page">
-      <h1 className="feed-title">Novedades</h1>
-
-      {/* Destacado superior: Evento de cata */}
+      {/* Hero Section */}
       <section className="feed-hero">
-        <article className="feed-card">
-          <h2 style={{ fontSize: "1.5rem", marginBottom: "0.5rem", color: "var(--brand)" }}>Cata de Café: Etiopía Yirgacheffe</h2>
-          <p style={{ marginBottom: "1rem" }}>
-            Este sábado a las 11:00h te invitamos a descubrir los matices florales y cítricos de nuestro nuevo lote de Etiopía.
-            Aprenderás sobre el proceso de lavado y cómo preparar el V60 perfecto. Plazas limitadas.
+        <div className="feed-hero-content">
+          <h1 className="feed-title">Novedades</h1>
+          <p className="feed-description">
+            Descubre las experiencias de nuestra comunidad. Tu opinión es el ingrediente secreto que nos ayuda a mejorar cada día y a seguir sirviendo el mejor café de especialidad.
           </p>
-          <div className="feed-actions">
-            <a href="/booking" className="btn-primary" style={{ textDecoration: "none" }}>Reservar Mi Plaza</a>
-          </div>
-        </article>
-
-        <div className="feed-media" style={{ background: "url('/src/assets/home-origin.png') center/cover no-repeat" }} aria-label="Imagen de preparación de café" />
+          <button className="hero-btn" onClick={scrollToForm}>
+            {user?.role === 'admin' ? 'Publicar Novedad' : 'Dejar opinión'}
+          </button>
+        </div>
+        <div className="feed-hero-image">
+          <img src={heroImage} alt="Coffee Shop Ambience" />
+        </div>
       </section>
 
-      {/* Opiniones (3 tarjetas) */}
-      <section className="feed-cards">
-        <article className="feed-quote">
-          <p>
-            “El mejor café de especialidad de la ciudad. El ambiente es súper acogedor y los baristas saben recomendarte según tus gustos. ¡El Flat White es increíble!”
-          </p>
-          <div className="feed-author">
-            <div className="feed-avatar" style={{ backgroundImage: "url('https://randomuser.me/api/portraits/women/44.jpg')", backgroundSize: "cover", backgroundPosition: "center" }} aria-hidden="true" />
-            <div>
-              <strong>María García</strong><br />
-              <small>Cliente frecuente</small>
-            </div>
+      {/* Comments Grid */}
+      <section className="comments-section">
+        {loading ? (
+          <div className="loading-state">Cargando...</div>
+        ) : error ? (
+          <div className="error-state">{error}</div>
+        ) : comments.length === 0 ? (
+          <div className="empty-feed">No hay publicaciones aún.</div>
+        ) : (
+          <div className="comments-grid">
+            {comments.map((comment) => (
+              <CommentCard
+                key={comment.id}
+                comment={comment}
+                user={user}
+                onDelete={handleDelete}
+                onToggleStatus={handleToggleStatus}
+              />
+            ))}
           </div>
-        </article>
-
-        <article className="feed-quote">
-          <p>
-            “Me encanta venir a trabajar aquí. Buena música, wifi rápido y unos postres caseros que son una perdición. Recomendadísimo el bizcocho de zanahoria.”
-          </p>
-          <div className="feed-author">
-            <div className="feed-avatar" style={{ backgroundImage: "url('https://randomuser.me/api/portraits/men/32.jpg')", backgroundSize: "cover", backgroundPosition: "center" }} aria-hidden="true" />
-            <div>
-              <strong>Carlos Ruiz</strong><br />
-              <small>Digital Nomad</small>
-            </div>
-          </div>
-        </article>
-
-        <article className="feed-quote">
-          <p>
-            “Compramos café en grano para casa todas las semanas. La calidad es constante y siempre nos ayudan a ajustar la molienda para nuestra cafetera.”
-          </p>
-          <div className="feed-author">
-            <div className="feed-avatar" style={{ backgroundImage: "url('https://randomuser.me/api/portraits/women/65.jpg')", backgroundSize: "cover", backgroundPosition: "center" }} aria-hidden="true" />
-            <div>
-              <strong>Laura y Pedro</strong><br />
-              <small>Amantes del café</small>
-            </div>
-          </div>
-        </article>
+        )}
       </section>
 
-      {/* Footer enlaces */}
-      <div className="feed-footer">
-        <a href="/booking">Contacto</a>
-        <a href="/booking">Dónde encontrarnos</a>
-        <a href="/feed">Opiniones</a>
-        <a href="/about">Equipo</a>
+      {/* Comment Form Section */}
+      <div id="comment-form-section" className={`comment-form-wrapper ${showForm ? 'visible' : ''}`}>
+        <CommentForm
+          user={user}
+          onSubmit={handleCreateComment}
+          onCancel={() => setShowForm(false)}
+          submitting={submitting}
+        />
       </div>
     </main>
   );
 }
+

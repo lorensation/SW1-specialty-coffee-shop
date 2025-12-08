@@ -4,6 +4,7 @@ import userRoutes from './userRoutes.js';
 import productRoutes from './productRoutes.js';
 import reservationRoutes from './reservationRoutes.js';
 import favoriteRoutes from './favoriteRoutes.js';
+import commentRoutes from './commentRoutes.js';
 import uploadRoutes from './uploadRoutes.js';
 
 const router = express.Router();
@@ -24,6 +25,9 @@ router.use('/reservations', reservationRoutes);
 
 // Favorite routes
 router.use('/favorites', favoriteRoutes);
+
+// Comment routes
+router.use('/comments', commentRoutes);
 
 // Upload routes
 router.use('/upload', uploadRoutes);

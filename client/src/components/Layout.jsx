@@ -12,14 +12,17 @@ export default function Layout() {
         <NavLink to="/about">Sobre nosotros</NavLink>
         <NavLink to="/menu">Menú</NavLink>
         <NavLink to="/booking">Reservas</NavLink>
-        <NavLink to="/feed">Novedades</NavLink>
+        <NavLink to="/feed">Opiniones</NavLink>
         <NavLink to="/account">Mi cuenta</NavLink>
         <NavLink to="/admin">Admin</NavLink>
         <NavLink to="/cart">Carrito</NavLink>
       </nav>
       <main className="container"><Outlet /></main>
       <footer className="footer">
-        Royal Coffee | Calle de la Princesa, 10, Madrid | Tel: +34 91 123 45 67
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
+          <span>Royal Coffee | Calle de la Princesa, 10, Madrid | Tel: +34 91 123 45 67</span>
+          <NavLink to="/feed" style={{ color: 'inherit', textDecoration: 'none', marginLeft: '1rem' }}>Opiniones</NavLink>
+        </div>
       </footer>
       <ChatWidget />
     </div>
