@@ -8,6 +8,10 @@ import config from '../config/config.js';
 
 class EmailService {
   constructor() {
+    console.log('📧 Email Service Initialized');
+    console.log('   Host:', config.email.host);
+    console.log('   User:', config.email.user || '(not set)');
+
     this.transporter = nodemailer.createTransport({
       host: config.email.host,
       port: config.email.port,
@@ -28,7 +32,6 @@ class EmailService {
       console.log('---------------------------------------------------');
       console.log(`Sending email to: ${to}`);
       console.log(`Subject: ${subject}`);
-      console.log('Text body:', text);
       console.log('---------------------------------------------------');
 
       const info = await this.transporter.sendMail({
@@ -39,16 +42,18 @@ class EmailService {
         html,
       });
 
-      console.log('Email sent:', info.messageId);
+      console.log('✅ Email sent successfully:', info.messageId);
       return { success: true, messageId: info.messageId };
     } catch (error) {
-      console.error('Email send error:', error);
-      // Return success: false but don't throw, so the client doesn't crash
-      // In dev, we might want to pretend it worked if we logged it
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Development mode: Pretending email was sent (check logs above)');
+      console.error('❌ Email send error:', error);
+
+      // Only pretend it worked if we are in dev AND we don't have credentials set up
+      // If user provided credentials, they probably want to know if it failed.
+      if (process.env.NODE_ENV === 'development' && !config.email.user) {
+        console.log('⚠️ Development mode & no credentials: Pretending email was sent.');
         return { success: true, messageId: 'dev-mock-id' };
       }
+
       return { success: false, error: error.message };
     }
   }

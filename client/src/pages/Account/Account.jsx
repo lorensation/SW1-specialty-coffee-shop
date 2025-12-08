@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
 import reservationService from "../../services/reservationService.js";
+import toast from "react-hot-toast";
 import "./Account.css";
 
 export default function Account() {
@@ -17,8 +18,6 @@ export default function Account() {
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
   const [formData, setFormData] = useState({ name: "", email: "", password: "" });
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
   // Efecto para aplicar la clase al body y guardar en localStorage
@@ -29,26 +28,23 @@ export default function Account() {
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    setError("");
-    setSuccess("");
   };
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError("");
 
     // Validate email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
-      setError("Por favor ingresa un correo electrónico válido");
+      toast.error("Por favor ingresa un correo electrónico válido");
       setLoading(false);
       return;
     }
 
     // Validate password
     if (!formData.password || formData.password.length < 1) {
-      setError("Por favor ingresa tu contraseña");
+      toast.error("Por favor ingresa tu contraseña");
       setLoading(false);
       return;
     }
@@ -58,10 +54,9 @@ export default function Account() {
     if (result.success) {
       setShowLogin(false);
       setFormData({ name: "", email: "", password: "" });
-      setSuccess("¡Sesión iniciada correctamente!");
-      setTimeout(() => setSuccess(""), 3000);
+      toast.success("¡Sesión iniciada correctamente!");
     } else {
-      setError(result.error || "Error al iniciar sesión");
+      toast.error(result.error || "Error al iniciar sesión");
     }
     setLoading(false);
   };
@@ -85,11 +80,10 @@ export default function Account() {
   const handleRegister = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError("");
 
     // Validate name
     if (!formData.name || formData.name.trim().length < 2) {
-      setError("El nombre debe tener al menos 2 caracteres");
+      toast.error("El nombre debe tener al menos 2 caracteres");
       setLoading(false);
       return;
     }
@@ -97,7 +91,7 @@ export default function Account() {
     // Validate email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
-      setError("Por favor ingresa un correo electrónico válido");
+      toast.error("Por favor ingresa un correo electrónico válido");
       setLoading(false);
       return;
     }
@@ -105,7 +99,7 @@ export default function Account() {
     // Validate password
     const passwordError = validatePassword(formData.password);
     if (passwordError) {
-      setError(passwordError);
+      toast.error(passwordError);
       setLoading(false);
       return;
     }
@@ -115,10 +109,9 @@ export default function Account() {
     if (result.success) {
       setShowRegister(false);
       setFormData({ name: "", email: "", password: "" });
-      setSuccess("¡Cuenta creada exitosamente! Bienvenido/a.");
-      setTimeout(() => setSuccess(""), 3000);
+      toast.success("¡Cuenta creada exitosamente! Bienvenido/a.");
     } else {
-      setError(result.error || "Error al registrarse");
+      toast.error(result.error || "Error al registrarse");
     }
     setLoading(false);
   };
@@ -127,8 +120,6 @@ export default function Account() {
     setShowLogin(false);
     setShowRegister(false);
     setFormData({ name: "", email: "", password: "" });
-    setError("");
-    setSuccess("");
   };
 
   // Estado para favoritos
@@ -187,8 +178,10 @@ export default function Account() {
         credentials: 'include'
       });
       setFavoritos(prev => prev.filter(f => f.id !== id));
+      toast.success("Eliminado de favoritos");
     } catch (error) {
       console.error("Error removing favorite", error);
+      toast.error("Error al eliminar de favoritos");
     }
   };
 
@@ -215,12 +208,15 @@ export default function Account() {
 
       const data = await response.json();
       if (data.success) {
+        toast.success("Avatar actualizado");
         window.location.reload();
       } else {
         console.error('Upload failed:', data.message);
+        toast.error(data.message || "Error al subir avatar");
       }
     } catch (error) {
       console.error('Error uploading avatar:', error);
+      toast.error("Error al subir avatar");
     }
   };
 
@@ -239,12 +235,15 @@ export default function Account() {
 
       const data = await response.json();
       if (data.success) {
+        toast.success("Avatar eliminado");
         window.location.reload();
       } else {
         console.error('Delete failed:', data.message);
+        toast.error(data.message || "Error al eliminar avatar");
       }
     } catch (error) {
       console.error('Error deleting avatar:', error);
+      toast.error("Error al eliminar avatar");
     }
   };
 
@@ -267,14 +266,13 @@ export default function Account() {
       if (data.success) {
         // Update local state to remove the cancelled reservation
         setReservas(prev => prev.filter(r => r.id !== id));
-        setSuccess("Reserva cancelada correctamente");
-        setTimeout(() => setSuccess(""), 3000);
+        toast.success("Reserva cancelada correctamente");
       } else {
-        setError(data.message || "Error al cancelar la reserva");
+        toast.error(data.message || "Error al cancelar la reserva");
       }
     } catch (error) {
       console.error("Error cancelling reservation", error);
-      setError("Error de conexión al cancelar la reserva");
+      toast.error("Error de conexión al cancelar la reserva");
     }
   };
 
@@ -304,7 +302,6 @@ export default function Account() {
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError("");
 
     try {
       const result = await reservationService.updateReservation(editingReservation.id, editFormData);
@@ -312,15 +309,14 @@ export default function Account() {
       if (result.success) {
         // Update local state
         setReservas(prev => prev.map(r => r.id === editingReservation.id ? result.data : r));
-        setSuccess("Reserva modificada correctamente");
-        setTimeout(() => setSuccess(""), 3000);
+        toast.success("Reserva modificada correctamente");
         setShowEditModal(false);
       } else {
-        setError(result.message || "Error al modificar la reserva");
+        toast.error(result.message || "Error al modificar la reserva");
       }
     } catch (error) {
       console.error("Error updating reservation", error);
-      setError("Error al modificar la reserva");
+      toast.error("Error al modificar la reserva");
     } finally {
       setLoading(false);
     }
@@ -329,13 +325,6 @@ export default function Account() {
   return (
     <main className="account-page">
       <h1 className="account-title">Mi cuenta</h1>
-
-      {/* Success Message */}
-      {success && (
-        <div className="success-notification">
-          {success}
-        </div>
-      )}
 
       {/* Cabecera */}
       <section className="account-header">
@@ -548,7 +537,6 @@ export default function Account() {
                     disabled={loading}
                   />
                 </div>
-                {error && <div className="error-message">{error}</div>}
                 <button type="submit" className="btn btn-primary" disabled={loading}>
                   {loading ? "Iniciando sesión..." : "Iniciar sesión"}
                 </button>
@@ -609,7 +597,6 @@ export default function Account() {
                   />
                   <small>Mínimo 8 caracteres, debe incluir mayúsculas, minúsculas y números</small>
                 </div>
-                {error && <div className="error-message">{error}</div>}
                 <button type="submit" className="btn btn-primary" disabled={loading}>
                   {loading ? "Registrando..." : "Registrarse"}
                 </button>
@@ -669,7 +656,6 @@ export default function Account() {
                     disabled={loading}
                   />
                 </div>
-                {error && <div className="error-message">{error}</div>}
                 <button type="submit" className="btn btn-primary" disabled={loading}>
                   {loading ? "Guardando..." : "Guardar Cambios"}
                 </button>

@@ -3,6 +3,7 @@ import { useCart } from "../../context/CartContext.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { Link } from "react-router-dom";
 import { getFeaturedProducts } from "../../services/productService.js";
+import toast from "react-hot-toast";
 
 export default function Cart() {
   const { items, removeItem, updateQty, toggleChecked, totals, clearCart, addItem } = useCart();
@@ -41,8 +42,18 @@ export default function Cart() {
 
   const simulate = () => {
     const sel = items.filter(i => i.checked);
-    if (!sel.length) { alert("No hay productos seleccionados."); return; }
-    alert(`Simulación de pedido:\n\n${sel.map(i => `• ${i.qty}× ${i.name}`).join("\n")}\n\nTotal: ${totals.total.toFixed(2)} €`);
+    if (!sel.length) { toast.error("No hay productos seleccionados."); return; }
+
+    toast.success(
+      <div>
+        <b>Simulación de pedido:</b>
+        <ul style={{ margin: '0.5rem 0', paddingLeft: '1rem' }}>
+          {sel.map(i => <li key={i.id}>{i.qty}× {i.name}</li>)}
+        </ul>
+        <b>Total: {totals.total.toFixed(2)} €</b>
+      </div>,
+      { duration: 5000 }
+    );
   };
 
   return (

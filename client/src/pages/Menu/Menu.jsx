@@ -3,6 +3,7 @@ import { useCart } from "../../context/CartContext.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { getProductsByCategory } from "../../services/productService.js";
 import { Link } from "react-router-dom";
+import toast from "react-hot-toast";
 
 function Row({ title, category, loading, error, items, onAddClick, favorites, onToggleFavorite }) {
   const trackRef = useRef(null);
@@ -106,7 +107,6 @@ export default function Menu() {
 
   // UI States
   const [showLoginModal, setShowLoginModal] = useState(false);
-  const [notification, setNotification] = useState(null);
 
   useEffect(() => {
     const categories = ['origen', 'bebida', 'postres', 'ediciones'];
@@ -213,19 +213,11 @@ export default function Menu() {
     }
 
     addItem(product);
-    setNotification(`¡${product.name} añadido al carrito!`);
-    setTimeout(() => setNotification(null), 3000);
+    toast.success(`¡${product.name} añadido al carrito!`);
   };
 
   return (
     <main className="menu-page">
-      {/* Notification Toast */}
-      {notification && (
-        <div className="notification-toast">
-          {notification}
-        </div>
-      )}
-
       {/* Login Modal */}
       {showLoginModal && (
         <div className="modal-overlay" onClick={() => setShowLoginModal(false)}>
@@ -294,25 +286,6 @@ export default function Menu() {
       </div>
 
       <style>{`
-        .notification-toast {
-          position: fixed;
-          top: 80px; /* Below header */
-          right: 20px;
-          background: #4caf50;
-          color: white;
-          padding: 1rem 1.5rem;
-          border-radius: 8px;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-          z-index: 2000;
-          animation: slideIn 0.3s ease-out;
-          font-weight: 500;
-        }
-
-        @keyframes slideIn {
-          from { transform: translateX(100%); opacity: 0; }
-          to { transform: translateX(0); opacity: 1; }
-        }
-
         .modal-overlay {
           position: fixed;
           top: 0; left: 0; right: 0; bottom: 0;

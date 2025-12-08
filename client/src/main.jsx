@@ -57,8 +57,11 @@ const router = createBrowserRouter([
   },
 ]);
 
+import { Toaster } from "react-hot-toast";
+
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
+    <Toaster position="top-center" />
     <AuthProvider>
       <CartProvider>
         <RouterProvider router={router} />

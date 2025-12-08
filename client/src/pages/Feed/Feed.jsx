@@ -4,6 +4,7 @@ import commentService from '../../services/commentService';
 import heroImage from '../../assets/about_1.jpg';
 import CommentCard from './CommentCard';
 import CommentForm from './CommentForm';
+import toast from 'react-hot-toast';
 import './Feed.css';
 
 export default function Feed() {
@@ -41,10 +42,11 @@ export default function Feed() {
       if (response.success) {
         setShowForm(false);
         fetchComments(); // Refresh list
+        toast.success('Comentario publicado correctamente');
       }
     } catch (err) {
       console.error(err);
-      alert('Error al publicar');
+      toast.error('Error al publicar');
     } finally {
       setSubmitting(false);
     }
@@ -57,10 +59,11 @@ export default function Feed() {
       const response = await commentService.deleteComment(id);
       if (response.success) {
         setComments(prev => prev.filter(c => c.id !== id));
+        toast.success('Comentario eliminado');
       }
     } catch (err) {
       console.error(err);
-      alert('Error al eliminar');
+      toast.error('Error al eliminar');
     }
   };
 
@@ -72,10 +75,11 @@ export default function Feed() {
         setComments(prev => prev.map(c =>
           c.id === id ? { ...c, status: newStatus } : c
         ));
+        toast.success(`Comentario ${newStatus === 'approved' ? 'visible' : 'oculto'}`);
       }
     } catch (err) {
       console.error(err);
-      alert('Error al cambiar estado');
+      toast.error('Error al cambiar estado');
     }
   };
 
