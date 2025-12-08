@@ -1,119 +1,199 @@
+import multer from 'multer';
+import path from 'path';
+import { supabaseAdmin } from '../config/database.js';
 import User from '../models/User.js';
-import { ApiError, asyncHandler } from '../middlewares/errorHandler.js';
 
-/**
- * User Controller - Simplified
- * Handles user management endpoints
- */
+// Configure multer storage (Memory Storage for Supabase Upload)
+const storage = multer.memoryStorage();
 
-/**
- * @route   GET /api/users/profile
- * @desc    Get user profile
- * @access  Private
- */
-export const getProfile = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user.id);
-
-  if (!user) {
-    throw new ApiError(404, 'User not found');
+// File filter
+const fileFilter = (req, file, cb) => {
+  // Accept images only
+  if (!file.originalname.match(/\.(jpg|jpeg|png|gif|webp)$/)) {
+    return cb(new Error('Only image files are allowed!'), false);
   }
+  cb(null, true);
+};
 
-  res.json({
-    success: true,
-    data: { user },
-  });
+export const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  },
+  fileFilter: fileFilter
 });
 
 /**
- * @route   PUT /api/users/profile
- * @desc    Update user profile
- * @access  Private
+ * Upload User Avatar
+ * POST /api/users/avatar
  */
-export const updateProfile = asyncHandler(async (req, res) => {
-  const { name, email } = req.body;
+export const uploadAvatar = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'No file uploaded'
+      });
+    }
 
-  const updates = {};
-  if (name) updates.name = name;
-  if (email) updates.email = email;
+    const file = req.file;
+    const fileExt = path.extname(file.originalname);
+    const fileName = `${req.user.id}-${Date.now()}${fileExt}`;
+    const filePath = `avatars/${fileName}`;
 
-  const user = await User.update(req.user.id, updates);
+    // Upload to Supabase Storage
+    const { data, error } = await supabaseAdmin
+      .storage
+      .from('avatars')
+      .upload(fileName, file.buffer, {
+        contentType: file.mimetype,
+        upsert: true
+      });
 
-  res.json({
-    success: true,
-    message: 'Profile updated successfully',
-    data: { user },
-  });
-});
+    if (error) throw error;
 
-/**
- * @route   GET /api/users
- * @desc    Get all users (admin)
- * @access  Private (Admin)
- */
-export const getAllUsers = asyncHandler(async (req, res) => {
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 20;
-  const role = req.query.role;
+    // Get public URL
+    const { data: { publicUrl } } = supabaseAdmin
+      .storage
+      .from('avatars')
+      .getPublicUrl(fileName);
 
-  const result = await User.getAll({ page, limit, role });
+    // Update user in database
+    const updatedUser = await User.update(req.user.id, { avatar_url: publicUrl });
 
-  res.json({
-    success: true,
-    data: result,
-  });
-});
-
-/**
- * @route   GET /api/users/:id
- * @desc    Get user by ID (admin)
- * @access  Private (Admin)
- */
-export const getUserById = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.params.id);
-
-  if (!user) {
-    throw new ApiError(404, 'User not found');
+    res.json({
+      success: true,
+      message: 'Avatar uploaded successfully',
+      data: {
+        avatar_url: updatedUser.avatar_url
+      }
+    });
+  } catch (error) {
+    console.error('Avatar upload error:', error);
+    next(error);
   }
+};
 
-  res.json({
-    success: true,
-    data: { user },
-  });
-});
+export const deleteAvatar = async (req, res, next) => {
+  try {
+    // Get current user to find the file path
+    const user = await User.findById(req.user.id);
+
+    if (user.avatar_url) {
+      // Extract filename from URL
+      // URL format: https://.../storage/v1/object/public/avatars/filename.jpg
+      const urlParts = user.avatar_url.split('/');
+      const fileName = urlParts[urlParts.length - 1];
+
+      // Delete from Supabase Storage
+      const { error } = await supabaseAdmin
+        .storage
+        .from('avatars')
+        .remove([fileName]);
+
+      if (error) {
+        console.error('Error deleting avatar from storage:', error);
+        // Continue to update DB even if storage delete fails
+      }
+
+      // Update user record
+      await User.update(req.user.id, { avatar_url: null });
+    }
+
+    res.json({
+      success: true,
+      message: 'Avatar deleted successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 /**
- * @route   PUT /api/users/:id
- * @desc    Update user (admin)
- * @access  Private (Admin)
+ * Get all users (Admin)
+ * GET /api/users
  */
-export const updateUser = asyncHandler(async (req, res) => {
-  const { name, email, role, is_active } = req.body;
+export const getAllUsers = async (req, res, next) => {
+  try {
+    const { page = 1, limit = 20, role } = req.query;
 
-  const updates = {};
-  if (name !== undefined) updates.name = name;
-  if (email !== undefined) updates.email = email;
-  if (role !== undefined) updates.role = role;
-  if (is_active !== undefined) updates.is_active = is_active;
+    const result = await User.getAll({
+      page: parseInt(page),
+      limit: parseInt(limit),
+      role
+    });
 
-  const user = await User.update(req.params.id, updates);
-
-  res.json({
-    success: true,
-    message: 'User updated successfully',
-    data: { user },
-  });
-});
+    res.json({
+      success: true,
+      data: result.users,
+      pagination: result.pagination
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 /**
- * @route   DELETE /api/users/:id
- * @desc    Delete user (admin)
- * @access  Private (Admin)
+ * Update user role (Admin)
+ * PATCH /api/users/:id/role
  */
-export const deleteUser = asyncHandler(async (req, res) => {
-  await User.delete(req.params.id);
+export const updateUserRole = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { role } = req.body;
 
-  res.json({
-    success: true,
-    message: 'User deleted successfully',
-  });
-});
+    if (!['user', 'admin'].includes(role)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid role'
+      });
+    }
+
+    const updatedUser = await User.update(id, { role });
+
+    res.json({
+      success: true,
+      message: 'User role updated successfully',
+      data: updatedUser
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Update user status (Admin)
+ * PATCH /api/users/:id/status
+ */
+export const updateUserStatus = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { is_active } = req.body;
+
+    if (typeof is_active !== 'boolean') {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid status'
+      });
+    }
+
+    const updatedUser = await User.update(id, { is_active });
+
+    res.json({
+      success: true,
+      message: `User ${is_active ? 'activated' : 'suspended'} successfully`,
+      data: updatedUser
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export default {
+  upload,
+  uploadAvatar,
+  deleteAvatar,
+  getAllUsers,
+  updateUserRole,
+  updateUserStatus
+};

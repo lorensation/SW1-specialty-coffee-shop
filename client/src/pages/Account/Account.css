@@ -1,0 +1,391 @@
+/* :root block removed to allow global theme inheritance */
+
+.account-page {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.account-title {
+    font-size: 2rem;
+    margin-bottom: 2rem;
+    color: var(--ink);
+}
+
+.account-header {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    margin-bottom: 3rem;
+    padding: 2rem;
+    background: var(--surface);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.account-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: var(--surface);
+    /* Fallback to surface if primary-light not good */
+    /* background: var(--line); */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--brand);
+    position: relative;
+    /* overflow: hidden; Removed to allow menu to show */
+}
+
+.account-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    /* Ensure image is circular */
+}
+
+.account-avatar svg {
+    width: 40px;
+    height: 40px;
+}
+
+.avatar-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s;
+    border-radius: 50%;
+    /* Match parent radius */
+}
+
+.account-avatar:hover .avatar-wrapper {
+    opacity: 1;
+}
+
+.avatar-menu {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 0.5rem;
+    min-width: 150px;
+    z-index: 100;
+    margin-top: 0.5rem;
+}
+
+.avatar-menu-item {
+    display: block;
+    padding: 0.5rem 1rem;
+    color: var(--ink);
+    text-decoration: none;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    text-align: left;
+    background: none;
+    border: none;
+    width: 100%;
+}
+
+.avatar-menu-item:hover {
+    background: var(--background);
+}
+
+.avatar-menu-item.delete {
+    color: #d32f2f;
+}
+
+.avatar-menu-item.delete:hover {
+    background: #ffebee;
+}
+
+.account-info {
+    flex: 1;
+}
+
+.account-info h2 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.5rem;
+}
+
+.account-info p {
+    margin: 0;
+    color: var(--muted);
+}
+
+.account-ctas {
+    display: flex;
+    gap: 1rem;
+}
+
+.account-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.account-card {
+    background: var(--surface);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.account-card h3 {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    font-size: 1.25rem;
+    border-bottom: 2px solid var(--line);
+    padding-bottom: 0.5rem;
+}
+
+.account-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.account-list li {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--line);
+}
+
+.account-list li:last-child {
+    border-bottom: none;
+}
+
+.pref-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+}
+
+
+
+.account-footer {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-top: 4rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--line);
+}
+
+.account-footer a {
+    color: var(--muted);
+    text-decoration: none;
+}
+
+.account-footer a:hover {
+    color: var(--brand);
+}
+
+/* Auth Forms Styles */
+.auth-forms {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 50vh;
+}
+
+.auth-form-container {
+    background: var(--surface);
+    padding: 2.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    width: 100%;
+    max-width: 450px;
+}
+
+.auth-form-container h2 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    text-align: center;
+    color: var(--ink);
+}
+
+.auth-description {
+    text-align: center;
+    color: var(--muted);
+    margin-bottom: 2rem;
+    line-height: 1.5;
+}
+
+.auth-form .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.auth-form label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--ink);
+}
+
+.auth-form input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+}
+
+.auth-form input:focus {
+    outline: none;
+    border-color: var(--brand);
+    box-shadow: 0 0 0 2px var(--brand);
+}
+
+.submit-btn {
+    width: 100%;
+    padding: 0.75rem;
+    background: var(--brand);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.submit-btn:hover {
+    background: var(--primary-dark);
+}
+
+.submit-btn:disabled {
+    background: var(--disabled);
+    cursor: not-allowed;
+}
+
+.auth-footer {
+    margin-top: 1.5rem;
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--muted);
+}
+
+.auth-footer a {
+    color: var(--brand);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.auth-footer a:hover {
+    text-decoration: underline;
+}
+
+.status-message {
+    padding: 1rem;
+    border-radius: 6px;
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+}
+
+.status-message.success {
+    background: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #c8e6c9;
+}
+
+.status-message.error {
+    background: #ffebee;
+    color: #c62828;
+    border: 1px solid #ffcdd2;
+}
+
+/* Modal Styles */
+.success-notification {
+    position: fixed;
+    top: 2rem;
+    right: 2rem;
+    background: #4caf50;
+    color: white;
+    padding: 1rem 1.5rem;
+    border-radius: 4px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 2000;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: var(--surface);
+    padding: 2rem;
+    border-radius: 8px;
+    max-width: 400px;
+    width: 90%;
+    position: relative;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    font-size: 2rem;
+    cursor: pointer;
+    color: var(--ink);
+    line-height: 1;
+}
+
+.modal-content h2 {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+}
+
+.modal-content .btn {
+    width: 100%;
+    margin-top: 0.5rem;
+}
+
+.error-message {
+    color: #d32f2f;
+    background: #ffebee;
+    padding: 0.75rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+}

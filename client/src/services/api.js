@@ -3,7 +3,7 @@
  * Centralized configuration for API calls
  */
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001/api";
 
 /**
  * Make an API request with error handling
@@ -68,9 +68,42 @@ export const put = (endpoint, body) =>
 export const del = (endpoint) =>
   apiRequest(endpoint, { method: 'DELETE' });
 
+/**
+ * PATCH request
+ */
+export const patch = (endpoint, body) =>
+  apiRequest(endpoint, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  });
+
+/**
+ * Upload file request (multipart/form-data)
+ */
+export const uploadFile = async (endpoint, file) => {
+  const formData = new FormData();
+  formData.append('image', file);
+
+  const response = await fetch(`${API_URL}${endpoint}`, {
+    method: 'POST',
+    credentials: 'include',
+    body: formData, // Content-Type header is set automatically by browser
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || `Error: ${response.status}`);
+  }
+
+  return data;
+};
+
 export default {
   get,
   post,
   put,
   del,
+  patch,
+  uploadFile,
 };

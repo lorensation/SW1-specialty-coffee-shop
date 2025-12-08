@@ -9,41 +9,41 @@ class ProductModel {
   /**
    * Get all products with optional filtering
    */
-  static async getAll({ 
-    page = 1, 
-    limit = 20, 
-    category = null, 
+  static async getAll({
+    page = 1,
+    limit = 20,
+    category = null,
     isActive = true,
     isFeatured = null,
-    search = null 
+    search = null
   }) {
     try {
       let query = supabase
         .from('products')
         .select('*', { count: 'exact' });
-      
+
       if (category) {
         query = query.eq('category', category);
       }
-      
+
       if (isActive !== null) {
         query = query.eq('is_active', isActive);
       }
-      
+
       if (isFeatured !== null) {
         query = query.eq('is_featured', isFeatured);
       }
-      
+
       if (search) {
         query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
       }
-      
+
       const { data, error, count } = await query
         .order('created_at', { ascending: false })
         .range((page - 1) * limit, page * limit - 1);
-      
+
       if (error) throw error;
-      
+
       return {
         success: true,
         data,
@@ -58,7 +58,7 @@ class ProductModel {
       return { success: false, error: handleSupabaseError(error) };
     }
   }
-  
+
   /**
    * Get products by category
    */
@@ -70,15 +70,15 @@ class ProductModel {
         .eq('category', category)
         .eq('is_active', true)
         .order('name');
-      
+
       if (error) throw error;
-      
+
       return { success: true, data };
     } catch (error) {
       return { success: false, error: handleSupabaseError(error) };
     }
   }
-  
+
   /**
    * Get product by ID
    */
@@ -89,15 +89,15 @@ class ProductModel {
         .select('*')
         .eq('id', id)
         .single();
-      
+
       if (error) throw error;
-      
+
       return { success: true, data };
     } catch (error) {
       return { success: false, error: handleSupabaseError(error) };
     }
   }
-  
+
   /**
    * Create new product (admin only)
    */
@@ -108,15 +108,15 @@ class ProductModel {
         .insert([productData])
         .select()
         .single();
-      
+
       if (error) throw error;
-      
+
       return { success: true, data };
     } catch (error) {
       return { success: false, error: handleSupabaseError(error) };
     }
   }
-  
+
   /**
    * Update product (admin only)
    */
@@ -128,35 +128,46 @@ class ProductModel {
         .eq('id', id)
         .select()
         .single();
-      
+
       if (error) throw error;
-      
+
       return { success: true, data };
     } catch (error) {
       return { success: false, error: handleSupabaseError(error) };
     }
   }
-  
+
   /**
    * Delete product (soft delete)
    */
   static async delete(id) {
     try {
+      // First delete from favorites to avoid FK constraint issues
+      const { error: favError } = await supabaseAdmin
+        .from('favorites')
+        .delete()
+        .eq('product_id', id);
+
+      if (favError) {
+        console.warn('Error deleting product favorites:', favError);
+        // Continue anyway as it might not exist or be critical
+      }
+
       const { data, error } = await supabaseAdmin
         .from('products')
-        .update({ is_active: false })
+        .delete()
         .eq('id', id)
         .select()
         .single();
-      
+
       if (error) throw error;
-      
+
       return { success: true, data };
     } catch (error) {
       return { success: false, error: handleSupabaseError(error) };
     }
   }
-  
+
   /**
    * Update stock quantity
    */
@@ -168,15 +179,15 @@ class ProductModel {
         .eq('id', id)
         .select()
         .single();
-      
+
       if (error) throw error;
-      
+
       return { success: true, data };
     } catch (error) {
       return { success: false, error: handleSupabaseError(error) };
     }
   }
-  
+
   /**
    * Get featured products
    */
@@ -188,9 +199,9 @@ class ProductModel {
         .eq('is_featured', true)
         .eq('is_active', true)
         .limit(limit);
-      
+
       if (error) throw error;
-      
+
       return { success: true, data };
     } catch (error) {
       return { success: false, error: handleSupabaseError(error) };

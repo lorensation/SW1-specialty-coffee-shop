@@ -35,7 +35,7 @@ class User {
   static async findById(id) {
     const { data, error } = await supabaseAdmin
       .from('users')
-      .select('id, email, name, role, is_active, created_at')
+      .select('id, email, name, role, is_active, created_at, avatar_url')
       .eq('id', id)
       .single();
 
@@ -92,7 +92,7 @@ class User {
       .from('users')
       .update(updates)
       .eq('id', id)
-      .select('id, email, name, role, is_active, created_at')
+      .select('id, email, name, role, is_active, created_at, avatar_url')
       .single();
 
     if (error) throw error;
@@ -139,6 +139,38 @@ class User {
         totalPages: Math.ceil(count / limit),
       },
     };
+  }
+  /**
+   * Save password reset token
+   */
+  static async saveResetToken(email, token, expires) {
+    const { data, error } = await supabaseAdmin
+      .from('users')
+      .update({
+        reset_password_token: token,
+        reset_password_expires: expires,
+      })
+      .eq('email', email.toLowerCase())
+      .select('id, email, name')
+      .single();
+
+    if (error) return null;
+    return data;
+  }
+
+  /**
+   * Find user by reset token
+   */
+  static async findByResetToken(token) {
+    const { data, error } = await supabaseAdmin
+      .from('users')
+      .select('*')
+      .eq('reset_password_token', token)
+      .gt('reset_password_expires', new Date().toISOString())
+      .single();
+
+    if (error) return null;
+    return data;
   }
 }
 

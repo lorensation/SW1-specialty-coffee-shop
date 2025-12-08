@@ -1,73 +1,146 @@
-export default function Feed(){
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../context/AuthContext';
+import commentService from '../../services/commentService';
+import heroImage from '../../assets/about_1.jpg';
+import CommentCard from './CommentCard';
+import CommentForm from './CommentForm';
+import toast from 'react-hot-toast';
+import './Feed.css';
+
+export default function Feed() {
+  const { user } = useAuth();
+  const [comments, setComments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+
+  useEffect(() => {
+    fetchComments();
+  }, []);
+
+  const fetchComments = async () => {
+    try {
+      const response = await commentService.getAllComments();
+      if (response.success) {
+        setComments(response.data);
+      } else {
+        setError('Error al cargar comentarios');
+      }
+    } catch (err) {
+      console.error(err);
+      setError('Error de conexión');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateComment = async (commentData) => {
+    setSubmitting(true);
+    try {
+      const response = await commentService.createComment(commentData);
+      if (response.success) {
+        setShowForm(false);
+        fetchComments(); // Refresh list
+        toast.success('Comentario publicado correctamente');
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Error al publicar');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('¿Estás seguro de eliminar este elemento?')) return;
+
+    try {
+      const response = await commentService.deleteComment(id);
+      if (response.success) {
+        setComments(prev => prev.filter(c => c.id !== id));
+        toast.success('Comentario eliminado');
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Error al eliminar');
+    }
+  };
+
+  const handleToggleStatus = async (id, currentStatus) => {
+    const newStatus = currentStatus === 'approved' ? 'hidden' : 'approved';
+    try {
+      const response = await commentService.updateCommentStatus(id, newStatus);
+      if (response.success) {
+        setComments(prev => prev.map(c =>
+          c.id === id ? { ...c, status: newStatus } : c
+        ));
+        toast.success(`Comentario ${newStatus === 'approved' ? 'visible' : 'oculto'}`);
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Error al cambiar estado');
+    }
+  };
+
+  const scrollToForm = () => {
+    setShowForm(true);
+    setTimeout(() => {
+      document.getElementById('comment-form-section')?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+  };
+
   return (
     <main className="feed-page">
-      <h1 className="feed-title">Novedades</h1>
-
-      {/* Destacado superior: texto + botón / media a la derecha */}
+      {/* Hero Section */}
       <section className="feed-hero">
-        <article className="feed-card">
-          <p>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer
-            id augue ut nunc pulvinar pretium. Breve texto introductorio de la
-            novedad principal.
+        <div className="feed-hero-content">
+          <h1 className="feed-title">Novedades</h1>
+          <p className="feed-description">
+            Descubre las experiencias de nuestra comunidad. Tu opinión es el ingrediente secreto que nos ayuda a mejorar cada día y a seguir sirviendo el mejor café de especialidad.
           </p>
-          <div className="feed-actions">
-            <button className="btn-primary">Leer más</button>
-          </div>
-        </article>
-
-        <div className="feed-media" aria-label="Imagen o vídeo de la novedad" />
+          <button className="hero-btn" onClick={scrollToForm}>
+            {user?.role === 'admin' ? 'Publicar Novedad' : 'Dejar opinión'}
+          </button>
+        </div>
+        <div className="feed-hero-image">
+          <img src={heroImage} alt="Coffee Shop Ambience" />
+        </div>
       </section>
 
-      {/* Opiniones (3 tarjetas) */}
-      <section className="feed-cards">
-        <article className="feed-quote">
-          <p>
-            “Lorem ipsum dolor sit amet et delectus accommodare his consul copiosae.”
-          </p>
-          <div className="feed-author">
-            <div className="feed-avatar" aria-hidden="true" />
-            <div>
-              <strong>Name Lastname</strong><br/>
-              <small>Company name</small>
-            </div>
+      {/* Comments Grid */}
+      <section className="comments-section">
+        {loading ? (
+          <div className="loading-state">Cargando...</div>
+        ) : error ? (
+          <div className="error-state">{error}</div>
+        ) : comments.length === 0 ? (
+          <div className="empty-feed">No hay publicaciones aún.</div>
+        ) : (
+          <div className="comments-grid">
+            {comments.map((comment) => (
+              <CommentCard
+                key={comment.id}
+                comment={comment}
+                user={user}
+                onDelete={handleDelete}
+                onToggleStatus={handleToggleStatus}
+              />
+            ))}
           </div>
-        </article>
-
-        <article className="feed-quote">
-          <p>
-            “Vidit dissentiet eos cu eum an brute copiosae hendrerit. Muy recomendable.”
-          </p>
-          <div className="feed-author">
-            <div className="feed-avatar" aria-hidden="true" />
-            <div>
-              <strong>Name Lastname</strong><br/>
-              <small>Company name</small>
-            </div>
-          </div>
-        </article>
-
-        <article className="feed-quote">
-          <p>
-            “Excelente experiencia: servicio, ambiente y café de primera.”
-          </p>
-          <div className="feed-author">
-            <div className="feed-avatar" aria-hidden="true" />
-            <div>
-              <strong>Name Lastname</strong><br/>
-              <small>Company name</small>
-            </div>
-          </div>
-        </article>
+        )}
       </section>
 
-      {/* Footer enlaces */}
-      <div className="feed-footer">
-        <a href="/booking">Contacto</a>
-        <a href="/booking">Dónde encontrarnos</a>
-        <a href="/feed">Opiniones</a>
-        <a href="/about">Equipo</a>
+      {/* Comment Form Section */}
+      <div id="comment-form-section" className={`comment-form-wrapper ${showForm ? 'visible' : ''}`}>
+        <CommentForm
+          user={user}
+          onSubmit={handleCreateComment}
+          onCancel={() => setShowForm(false)}
+          submitting={submitting}
+        />
       </div>
     </main>
   );
 }
+

@@ -11,6 +11,28 @@ class ReservationModel {
    */
   static async create(reservationData) {
     try {
+      // Check for existing reservation for the same user, date, and time
+      if (reservationData.user_id) {
+        const { data: existing } = await supabaseAdmin
+          .from('reservations')
+          .select('id')
+          .eq('user_id', reservationData.user_id)
+          .eq('reservation_date', reservationData.reservation_date)
+          .eq('reservation_time', reservationData.reservation_time)
+          .neq('status', 'cancelled')
+          .single();
+
+        if (existing) {
+          return {
+            success: false,
+            error: {
+              status: 409,
+              message: 'You already have a reservation for this date and time'
+            }
+          };
+        }
+      }
+
       const { data, error } = await supabaseAdmin
         .from('reservations')
         .insert([{
@@ -19,24 +41,24 @@ class ReservationModel {
         }])
         .select()
         .single();
-      
+
       if (error) throw error;
-      
+
       return { success: true, data };
     } catch (error) {
       return { success: false, error: handleSupabaseError(error) };
     }
   }
-  
+
   /**
    * Get all reservations with filtering
    */
-  static async getAll({ 
-    page = 1, 
-    limit = 20, 
+  static async getAll({
+    page = 1,
+    limit = 20,
     status = null,
     userId = null,
-    date = null 
+    date = null
   }) {
     try {
       let query = supabaseAdmin
@@ -45,26 +67,26 @@ class ReservationModel {
           *,
           users(name, email)
         `, { count: 'exact' });
-      
+
       if (status) {
         query = query.eq('status', status);
       }
-      
+
       if (userId) {
         query = query.eq('user_id', userId);
       }
-      
+
       if (date) {
         query = query.eq('reservation_date', date);
       }
-      
+
       const { data, error, count } = await query
         .order('reservation_date', { ascending: false })
         .order('reservation_time', { ascending: false })
         .range((page - 1) * limit, page * limit - 1);
-      
+
       if (error) throw error;
-      
+
       return {
         success: true,
         data,
@@ -79,7 +101,7 @@ class ReservationModel {
       return { success: false, error: handleSupabaseError(error) };
     }
   }
-  
+
   /**
    * Get reservation by ID
    */
@@ -89,19 +111,19 @@ class ReservationModel {
         .from('reservations')
         .select(`
           *,
-          users(name, email, phone)
+          users(name, email)
         `)
         .eq('id', id)
         .single();
-      
+
       if (error) throw error;
-      
+
       return { success: true, data };
     } catch (error) {
       return { success: false, error: handleSupabaseError(error) };
     }
   }
-  
+
   /**
    * Get user reservations
    */
@@ -112,15 +134,15 @@ class ReservationModel {
         .select('*')
         .eq('user_id', userId)
         .order('reservation_date', { ascending: false });
-      
+
       if (error) throw error;
-      
+
       return { success: true, data };
     } catch (error) {
       return { success: false, error: handleSupabaseError(error) };
     }
   }
-  
+
   /**
    * Update reservation status
    */
@@ -130,22 +152,22 @@ class ReservationModel {
       if (adminNotes) {
         updates.admin_notes = adminNotes;
       }
-      
+
       const { data, error } = await supabaseAdmin
         .from('reservations')
         .update(updates)
         .eq('id', id)
         .select()
         .single();
-      
+
       if (error) throw error;
-      
+
       return { success: true, data };
     } catch (error) {
       return { success: false, error: handleSupabaseError(error) };
     }
   }
-  
+
   /**
    * Update reservation
    */
@@ -157,15 +179,15 @@ class ReservationModel {
         .eq('id', id)
         .select()
         .single();
-      
+
       if (error) throw error;
-      
+
       return { success: true, data };
     } catch (error) {
       return { success: false, error: handleSupabaseError(error) };
     }
   }
-  
+
   /**
    * Cancel reservation
    */
@@ -173,19 +195,19 @@ class ReservationModel {
     try {
       const { data, error } = await supabaseAdmin
         .from('reservations')
-        .update({ status: 'cancelled' })
+        .delete()
         .eq('id', id)
         .select()
         .single();
-      
+
       if (error) throw error;
-      
+
       return { success: true, data };
     } catch (error) {
       return { success: false, error: handleSupabaseError(error) };
     }
   }
-  
+
   /**
    * Check availability for a specific date and time
    */
@@ -197,12 +219,12 @@ class ReservationModel {
         .eq('reservation_date', date)
         .eq('reservation_time', time)
         .in('status', ['pending', 'confirmed']);
-      
+
       if (error) throw error;
-      
+
       const totalPeople = data.reduce((sum, r) => sum + r.num_people, 0);
       const maxCapacity = 50; // Configure this as needed
-      
+
       return {
         success: true,
         data: {

@@ -3,8 +3,9 @@ import { useCart } from "../../context/CartContext.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { getProductsByCategory } from "../../services/productService.js";
 import { Link } from "react-router-dom";
+import toast from "react-hot-toast";
 
-function Row({ title, category, loading, error, items, onAddClick }) {
+function Row({ title, category, loading, error, items, onAddClick, favorites, onToggleFavorite }) {
   const trackRef = useRef(null);
   const scroll = d => trackRef.current?.scrollBy({ left: d === "next" ? 340 : -340, behavior: "smooth" });
 
@@ -39,6 +40,13 @@ function Row({ title, category, loading, error, items, onAddClick }) {
           ) : (
             items.map(it => (
               <article key={it.id} className="menu-card">
+                <button
+                  className={`fav-btn ${favorites.some(f => f.id === it.id) ? 'active' : ''}`}
+                  onClick={() => onToggleFavorite(it)}
+                  aria-label={favorites.some(f => f.id === it.id) ? "Quitar de favoritos" : "Añadir a favoritos"}
+                >
+                  {favorites.some(f => f.id === it.id) ? '♥' : '♡'}
+                </button>
                 {it.image_url ? (
                   <img 
                     src={it.image_url} 
@@ -53,11 +61,14 @@ function Row({ title, category, loading, error, items, onAddClick }) {
                   <div className="menu-media" aria-hidden="true" />
                 )}
                 <div className="menu-body">
-                  <p className="menu-desc">
-                    {it.name}
-                    {it.tasting_notes && ` — ${it.tasting_notes}`}
-                    {it.description && !it.tasting_notes && ` — ${it.description}`}
-                  </p>
+                  <div className="menu-info">
+                    <h3 className="menu-name">{it.name}</h3>
+                    {(it.tasting_notes || it.description) && (
+                      <p className="menu-ingredients">
+                        {it.tasting_notes || it.description}
+                      </p>
+                    )}
+                  </div>
                   <div className="menu-meta">
                     <div className="menu-price"><b>Precio total {it.price.toFixed(2)}€</b></div>
                     <button
@@ -104,7 +115,6 @@ export default function Menu() {
 
   // UI States
   const [showLoginModal, setShowLoginModal] = useState(false);
-  const [notification, setNotification] = useState(null);
 
   useEffect(() => {
     const categories = ['origen', 'bebida', 'postres', 'ediciones'];
@@ -129,6 +139,81 @@ export default function Menu() {
     });
   }, []);
 
+  const [favorites, setFavorites] = useState([]);
+
+  // Load favorites on mount or user change
+  useEffect(() => {
+    const loadFavorites = async () => {
+      if (user) {
+        try {
+          const token = localStorage.getItem('token');
+          const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5001/api'}/favorites`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+          });
+          const data = await response.json();
+          if (data.success) {
+            setFavorites(data.data);
+          }
+        } catch (error) {
+          console.error("Error loading favorites:", error);
+        }
+      } else {
+        // Fallback to local storage
+        try {
+          const saved = localStorage.getItem("royal_favorites");
+          if (saved) setFavorites(JSON.parse(saved));
+        } catch {
+          setFavorites([]);
+        }
+      }
+    };
+    loadFavorites();
+  }, [user]);
+
+  const toggleFavorite = async (product) => {
+    const isFavorite = favorites.some(p => p.id === product.id);
+
+    // Optimistic update
+    let newFavs;
+    if (isFavorite) {
+      newFavs = favorites.filter(p => p.id !== product.id);
+    } else {
+      newFavs = [...favorites, product];
+    }
+    setFavorites(newFavs);
+
+    if (user) {
+      // Sync with backend
+      try {
+        const token = localStorage.getItem('token');
+        const url = `${import.meta.env.VITE_API_URL || 'http://localhost:5001/api'}/favorites`;
+        const method = isFavorite ? 'DELETE' : 'POST';
+        const endpoint = isFavorite ? `${url}/${product.id}` : url;
+        const body = isFavorite ? undefined : JSON.stringify({ productId: product.id });
+
+        await fetch(endpoint, {
+          method,
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body,
+          credentials: 'include'
+        });
+      } catch (error) {
+        console.error("Error syncing favorite:", error);
+        // Revert on error (optional, but good practice)
+      }
+    } else {
+      // Sync with local storage
+      localStorage.setItem("royal_favorites", JSON.stringify(newFavs));
+    }
+  };
+
   const handleAddToCart = (product) => {
     if (!user) {
       setShowLoginModal(true);
@@ -136,19 +221,11 @@ export default function Menu() {
     }
 
     addItem(product);
-    setNotification(`¡${product.name} añadido al carrito!`);
-    setTimeout(() => setNotification(null), 3000);
+    toast.success(`¡${product.name} añadido al carrito!`);
   };
 
   return (
     <main className="menu-page">
-      {/* Notification Toast */}
-      {notification && (
-        <div className="notification-toast">
-          {notification}
-        </div>
-      )}
-
       {/* Login Modal */}
       {showLoginModal && (
         <div className="modal-overlay" onClick={() => setShowLoginModal(false)}>
@@ -175,6 +252,8 @@ export default function Menu() {
         loading={loading.origen}
         error={errors.origen}
         onAddClick={handleAddToCart}
+        favorites={favorites}
+        onToggleFavorite={toggleFavorite}
       />
       <Row
         title="Bebida"
@@ -183,6 +262,8 @@ export default function Menu() {
         loading={loading.bebida}
         error={errors.bebida}
         onAddClick={handleAddToCart}
+        favorites={favorites}
+        onToggleFavorite={toggleFavorite}
       />
       <Row
         title="Postres"
@@ -191,6 +272,8 @@ export default function Menu() {
         loading={loading.postres}
         error={errors.postres}
         onAddClick={handleAddToCart}
+        favorites={favorites}
+        onToggleFavorite={toggleFavorite}
       />
       <Row
         title="Ediciones especiales"
@@ -199,6 +282,8 @@ export default function Menu() {
         loading={loading.ediciones}
         error={errors.ediciones}
         onAddClick={handleAddToCart}
+        favorites={favorites}
+        onToggleFavorite={toggleFavorite}
       />
 
       <div className="menu-footer">
@@ -209,25 +294,6 @@ export default function Menu() {
       </div>
 
       <style>{`
-        .notification-toast {
-          position: fixed;
-          top: 80px; /* Below header */
-          right: 20px;
-          background: #4caf50;
-          color: white;
-          padding: 1rem 1.5rem;
-          border-radius: 8px;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-          z-index: 2000;
-          animation: slideIn 0.3s ease-out;
-          font-weight: 500;
-        }
-
-        @keyframes slideIn {
-          from { transform: translateX(100%); opacity: 0; }
-          to { transform: translateX(0); opacity: 1; }
-        }
-
         .modal-overlay {
           position: fixed;
           top: 0; left: 0; right: 0; bottom: 0;
@@ -316,6 +382,37 @@ export default function Menu() {
         .menu-card img {
           image-rendering: auto;
           transform: translateZ(0);
+        }
+
+        .menu-card {
+          position: relative;
+        }
+
+        .fav-btn {
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          background: white;
+          border: none;
+          border-radius: 50%;
+          width: 32px;
+          height: 32px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          font-size: 1.2rem;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+          z-index: 10;
+          transition: transform 0.2s;
+        }
+
+        .fav-btn:hover {
+          transform: scale(1.1);
+        }
+
+        .fav-btn.active {
+          color: #e74c3c;
         }
 
         .menu-add:disabled {

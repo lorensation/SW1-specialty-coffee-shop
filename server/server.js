@@ -1,4 +1,5 @@
 import express from 'express';
+import http from 'http';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
@@ -7,6 +8,7 @@ import config from './config/config.js';
 import { testConnection } from './config/database.js';
 import routes from './routes/index.js';
 import { notFound, errorHandler } from './middlewares/errorHandler.js';
+import { initSocket } from './services/socketService.js';
 
 const app = express();
 
@@ -40,6 +42,9 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Cookie parsing middleware
 app.use(cookieParser(config.cookie.secret));
+
+// Serve static files from uploads directory
+app.use('/uploads', express.static('uploads'));
 
 // ========================================
 // ROUTES
@@ -79,15 +84,21 @@ const startServer = async () => {
     // Test database connection
     console.log('🔍 Testing database connection...');
     const dbConnected = await testConnection();
-    
+
     if (!dbConnected) {
       console.error('❌ Failed to connect to database. Please check your Supabase configuration.');
       process.exit(1);
     }
-    
+
+    // Create HTTP server
+    const server = http.createServer(app);
+
+    // Initialize Socket.io
+    initSocket(server);
+
     // Start server
     const PORT = config.port;
-    app.listen(PORT, () => {
+    server.listen(PORT, () => {
       console.log('');
       console.log('========================================');
       console.log('  🚀 Royal Coffee API Server Started');
