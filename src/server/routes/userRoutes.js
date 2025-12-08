@@ -26,6 +26,17 @@ router.delete(
 );
 
 /**
+ * @route   PUT /api/users/profile
+ * @desc    Update user profile
+ * @access  Private
+ */
+router.put(
+    '/profile',
+    authenticate,
+    asyncHandler(userController.updateProfile)
+);
+
+/**
  * @route   GET /api/users
  * @desc    Get all users (Admin)
  * @access  Private/Admin

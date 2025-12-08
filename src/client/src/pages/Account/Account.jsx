@@ -19,6 +19,11 @@ export default function Account() {
   const [showRegister, setShowRegister] = useState(false);
   const [formData, setFormData] = useState({ name: "", email: "", password: "" });
   const [loading, setLoading] = useState(false);
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showRegisterPassword, setShowRegisterPassword] = useState(false);
+  const [showEditProfile, setShowEditProfile] = useState(false);
+  const [profileData, setProfileData] = useState({ name: "" });
+  const { updateProfile } = useAuth();
 
   // Efecto para aplicar la clase al body y guardar en localStorage
   useEffect(() => {
@@ -382,7 +387,19 @@ export default function Account() {
         <div className="account-info">
           {user ? (
             <>
-              <h2>{user.name}</h2>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <h2>{user.name}</h2>
+                <button
+                  onClick={() => {
+                    setProfileData({ name: user.name });
+                    setShowEditProfile(true);
+                  }}
+                  className="btn btn-sm btn-outline"
+                  style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem' }}
+                >
+                  Editar
+                </button>
+              </div>
               <p>{user.email}</p>
               <button onClick={logout} className="btn btn-outline btn-sm">
                 Cerrar sesión
@@ -553,15 +570,35 @@ export default function Account() {
                 </div>
                 <div className="form-group">
                   <label htmlFor="login-password">Contraseña</label>
-                  <input
-                    id="login-password"
-                    type="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    required
-                    disabled={loading}
-                  />
+                  <div className="password-input-wrapper">
+                    <input
+                      id="login-password"
+                      type={showLoginPassword ? "text" : "password"}
+                      name="password"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      required
+                      disabled={loading}
+                    />
+                    <button
+                      type="button"
+                      className="password-toggle-btn"
+                      onClick={() => setShowLoginPassword(!showLoginPassword)}
+                      aria-label={showLoginPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                    >
+                      {showLoginPassword ? (
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                          <line x1="1" y1="1" x2="23" y2="23"></line>
+                        </svg>
+                      ) : (
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                          <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                      )}
+                    </button>
+                  </div>
                 </div>
                 <button type="submit" className="btn btn-primary" disabled={loading}>
                   {loading ? "Iniciando sesión..." : "Iniciar sesión"}
@@ -611,16 +648,36 @@ export default function Account() {
                 </div>
                 <div className="form-group">
                   <label htmlFor="register-password">Contraseña</label>
-                  <input
-                    id="register-password"
-                    type="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    required
-                    minLength={8}
-                    disabled={loading}
-                  />
+                  <div className="password-input-wrapper">
+                    <input
+                      id="register-password"
+                      type={showRegisterPassword ? "text" : "password"}
+                      name="password"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      required
+                      minLength={8}
+                      disabled={loading}
+                    />
+                    <button
+                      type="button"
+                      className="password-toggle-btn"
+                      onClick={() => setShowRegisterPassword(!showRegisterPassword)}
+                      aria-label={showRegisterPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                    >
+                      {showRegisterPassword ? (
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                          <line x1="1" y1="1" x2="23" y2="23"></line>
+                        </svg>
+                      ) : (
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                          <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                      )}
+                    </button>
+                  </div>
                   <small>Mínimo 8 caracteres, debe incluir mayúsculas, minúsculas y números</small>
                 </div>
                 <button type="submit" className="btn btn-primary" disabled={loading}>
@@ -679,6 +736,46 @@ export default function Account() {
                     required
                     min="1"
                     max="10"
+                    disabled={loading}
+                  />
+                </div>
+                <button type="submit" className="btn btn-primary" disabled={loading}>
+                  {loading ? "Guardando..." : "Guardar Cambios"}
+                </button>
+              </form>
+            </div>
+          </div>
+        )
+      }
+
+      {/* Edit Profile Modal */}
+      {
+        showEditProfile && (
+          <div className="modal-overlay" onClick={() => setShowEditProfile(false)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <button className="modal-close" onClick={() => setShowEditProfile(false)}>&times;</button>
+              <h2>Editar Perfil</h2>
+              <form onSubmit={async (e) => {
+                e.preventDefault();
+                setLoading(true);
+                const result = await updateProfile(profileData.name);
+                if (result.success) {
+                  toast.success("Perfil actualizado correctamente");
+                  setShowEditProfile(false);
+                } else {
+                  toast.error(result.error || "Error al actualizar perfil");
+                }
+                setLoading(false);
+              }}>
+                <div className="form-group">
+                  <label htmlFor="edit-name">Nombre</label>
+                  <input
+                    id="edit-name"
+                    type="text"
+                    value={profileData.name}
+                    onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
+                    required
+                    minLength={2}
                     disabled={loading}
                   />
                 </div>

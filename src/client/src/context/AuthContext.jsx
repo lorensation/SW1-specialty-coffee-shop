@@ -134,8 +134,36 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const updateProfile = async (name) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_URL}/users/profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        credentials: 'include',
+        body: JSON.stringify({ name }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Update failed');
+      }
+
+      // Update local user state
+      setUser(prev => ({ ...prev, name: data.data.name }));
+      return { success: true, user: data.data };
+    } catch (error) {
+      console.error('Update profile error:', error);
+      return { success: false, error: error.message };
+    }
+  };
+
   return (
-    <AuthCtx.Provider value={{ user, login, register, logout, forgotPassword, resetPassword, loading, checkAuth }}>
+    <AuthCtx.Provider value={{ user, login, register, logout, forgotPassword, resetPassword, updateProfile, loading, checkAuth }}>
       {children}
     </AuthCtx.Provider>
   );

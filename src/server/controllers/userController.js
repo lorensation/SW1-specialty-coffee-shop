@@ -165,6 +165,33 @@ export const updateUserRole = async (req, res, next) => {
  * Update user status (Admin)
  * PATCH /api/users/:id/status
  */
+/**
+ * Update user profile (Self)
+ * PUT /api/users/profile
+ */
+export const updateProfile = async (req, res, next) => {
+  try {
+    const { name } = req.body;
+
+    if (!name || name.trim().length < 2) {
+      return res.status(400).json({
+        success: false,
+        message: 'Name must be at least 2 characters long'
+      });
+    }
+
+    const updatedUser = await User.update(req.user.id, { name });
+
+    res.json({
+      success: true,
+      message: 'Profile updated successfully',
+      data: updatedUser
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const updateUserStatus = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -195,5 +222,6 @@ export default {
   deleteAvatar,
   getAllUsers,
   updateUserRole,
-  updateUserStatus
+  updateUserStatus,
+  updateProfile
 };
