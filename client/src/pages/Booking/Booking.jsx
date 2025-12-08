@@ -9,6 +9,8 @@ export default function Booking() {
     name: "", email: "", people: "2", date: "", time: "", message: ""
   });
   const [ok, setOk] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [showError, setShowError] = useState(false);
 
   const [loading, setLoading] = useState(false);
 
@@ -32,11 +34,21 @@ export default function Booking() {
     if (loading) return;
 
     // Validación mínima
-    if (!form.name || !form.email || !form.date || !form.time) {
-      alert("Completa nombre, email, fecha y hora.");
+    const newErrors = {};
+    if (!form.name || form.name.trim() === "") newErrors.name = "El nombre es obligatorio";
+    if (!form.email || form.email.trim() === "") newErrors.email = "El email es obligatorio";
+    if (!form.date) newErrors.date = "La fecha es obligatoria";
+    if (!form.time) newErrors.time = "La hora es obligatoria";
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      setShowError(true);
+      setTimeout(() => setShowError(false), 5000);
       return;
     }
 
+    setErrors({});
+    setShowError(false);
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
@@ -66,18 +78,26 @@ export default function Booking() {
 
       if (response.ok) {
         setOk(true);
+        setErrors({});
         setForm(prev => ({ ...prev, date: "", time: "", message: "" }));
       } else {
         if (data.errors && Array.isArray(data.errors)) {
-          const errorMessages = data.errors.map(err => `${err.field}: ${err.message}`).join('\n');
-          alert(`Error de validación:\n${errorMessages}`);
+          const serverErrors = {};
+          data.errors.forEach(err => {
+            serverErrors[err.field] = err.message;
+          });
+          setErrors(serverErrors);
         } else {
-          alert(data.message || 'Error al realizar la reserva');
+          setErrors({ general: data.message || 'Error al realizar la reserva' });
         }
+        setShowError(true);
+        setTimeout(() => setShowError(false), 5000);
       }
     } catch (error) {
       console.error('Error creating reservation:', error);
-      alert('Error de conexión al realizar la reserva');
+      setErrors({ general: 'Error de conexión al realizar la reserva' });
+      setShowError(true);
+      setTimeout(() => setShowError(false), 5000);
     } finally {
       setLoading(false);
     }
@@ -126,9 +146,32 @@ export default function Booking() {
       <div className="booking-grid">
         {/* Izquierda: Formulario */}
         <section className="booking-card">
+          {showError && Object.keys(errors).length > 0 && (
+            <div style={{
+              backgroundColor: '#ffebee',
+              color: '#c62828',
+              padding: '15px',
+              borderRadius: '8px',
+              marginBottom: '20px',
+              border: '1px solid #ef9a9a',
+              animation: 'slideDown 0.3s ease-out'
+            }}>
+              <strong>Por favor, corrige los siguientes errores:</strong>
+              <ul style={{ margin: '10px 0 0 20px', padding: 0 }}>
+                {errors.general && <li>{errors.general}</li>}
+                {errors.name && <li>{errors.name}</li>}
+                {errors.email && <li>{errors.email}</li>}
+                {errors.date && <li>{errors.date}</li>}
+                {errors.time && <li>{errors.time}</li>}
+              </ul>
+            </div>
+          )}
           <form onSubmit={onSubmit} noValidate>
             <div className="form-row">
-              <label htmlFor="name">Nombre completo</label>
+              <label htmlFor="name">
+                Nombre completo
+                {errors.name && <span style={{ color: '#c62828', marginLeft: '5px' }}>*</span>}
+              </label>
               <input
                 id="name"
                 name="name"
@@ -137,12 +180,18 @@ export default function Booking() {
                 onChange={onChange}
                 placeholder="Tu nombre"
                 disabled={!!user || loading}
-                style={user ? { backgroundColor: '#f5f5f5', cursor: 'not-allowed' } : {}}
+                style={{
+                  ...(user ? { backgroundColor: '#f5f5f5', cursor: 'not-allowed' } : {}),
+                  ...(errors.name ? { borderColor: '#c62828', borderWidth: '2px' } : {})
+                }}
               />
             </div>
 
             <div className="form-row">
-              <label htmlFor="email">Correo electrónico</label>
+              <label htmlFor="email">
+                Correo electrónico
+                {errors.email && <span style={{ color: '#c62828', marginLeft: '5px' }}>*</span>}
+              </label>
               <input
                 id="email"
                 name="email"
@@ -152,7 +201,10 @@ export default function Booking() {
                 onChange={onChange}
                 placeholder="tucorreo@ejemplo.com"
                 disabled={!!user || loading}
-                style={user ? { backgroundColor: '#f5f5f5', cursor: 'not-allowed' } : {}}
+                style={{
+                  ...(user ? { backgroundColor: '#f5f5f5', cursor: 'not-allowed' } : {}),
+                  ...(errors.email ? { borderColor: '#c62828', borderWidth: '2px' } : {})
+                }}
               />
             </div>
 
@@ -166,13 +218,27 @@ export default function Booking() {
             </div>
 
             <div className="form-row">
-              <label htmlFor="date">Fecha</label>
-              <input id="date" name="date" type="date" className="input"
-                value={form.date} onChange={onChange} disabled={loading} />
+              <label htmlFor="date">
+                Fecha
+                {errors.date && <span style={{ color: '#c62828', marginLeft: '5px' }}>*</span>}
+              </label>
+              <input 
+                id="date" 
+                name="date" 
+                type="date" 
+                className="input"
+                value={form.date} 
+                onChange={onChange} 
+                disabled={loading}
+                style={errors.date ? { borderColor: '#c62828', borderWidth: '2px' } : {}}
+              />
             </div>
 
             <div className="form-row">
-              <label htmlFor="time">Hora</label>
+              <label htmlFor="time">
+                Hora
+                {errors.time && <span style={{ color: '#c62828', marginLeft: '5px' }}>*</span>}
+              </label>
               <select
                 id="time"
                 name="time"
@@ -180,6 +246,7 @@ export default function Booking() {
                 value={form.time}
                 onChange={onChange}
                 disabled={loading}
+                style={errors.time ? { borderColor: '#c62828', borderWidth: '2px' } : {}}
               >
                 <option value="">Selecciona una hora</option>
                 {(() => {

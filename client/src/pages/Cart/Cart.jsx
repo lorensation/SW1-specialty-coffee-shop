@@ -31,25 +31,20 @@ export default function Cart() {
     fetchRecs();
   }, []);
 
-  // Function to add item and replace it in recommendations
   const handleAddRecommendation = (product) => {
-    // Add to cart
     addItem(product);
     
-    // Find products not currently shown in recommendations
     const currentIds = recommended.map(p => p.id);
     const availableProducts = allProducts.filter(p => !currentIds.includes(p.id));
     
     if (availableProducts.length > 0) {
-      // Replace the added product with a new one
       setRecommended(prev => {
         const newRecs = prev.filter(p => p.id !== product.id);
-        // Add a new product from available ones
+
         newRecs.push(availableProducts[0]);
         return newRecs;
       });
     } else {
-      // If no more products available, just remove the added one
       setRecommended(prev => prev.filter(p => p.id !== product.id));
     }
   };
