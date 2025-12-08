@@ -10,6 +10,7 @@ export default function Cart() {
   const { user } = useAuth();
   const [recommended, setRecommended] = useState([]);
   const [loadingRecs, setLoadingRecs] = useState(true);
+  const [allProducts, setAllProducts] = useState([]); // Store all available products
 
   // Fetch recommendations on mount
   useEffect(() => {
@@ -17,7 +18,8 @@ export default function Cart() {
       try {
         const res = await getFeaturedProducts();
         if (res.success) {
-          // Take only 2-3 items for the sidebar
+          // Store all products and show first 3
+          setAllProducts(res.data);
           setRecommended(res.data.slice(0, 3));
         }
       } catch (err) {
@@ -28,6 +30,29 @@ export default function Cart() {
     };
     fetchRecs();
   }, []);
+
+  // Function to add item and replace it in recommendations
+  const handleAddRecommendation = (product) => {
+    // Add to cart
+    addItem(product);
+    
+    // Find products not currently shown in recommendations
+    const currentIds = recommended.map(p => p.id);
+    const availableProducts = allProducts.filter(p => !currentIds.includes(p.id));
+    
+    if (availableProducts.length > 0) {
+      // Replace the added product with a new one
+      setRecommended(prev => {
+        const newRecs = prev.filter(p => p.id !== product.id);
+        // Add a new product from available ones
+        newRecs.push(availableProducts[0]);
+        return newRecs;
+      });
+    } else {
+      // If no more products available, just remove the added one
+      setRecommended(prev => prev.filter(p => p.id !== product.id));
+    }
+  };
 
   if (!user) {
     return (
@@ -131,7 +156,7 @@ export default function Cart() {
                     </div>
 
                     <button
-                      onClick={() => addItem(prod)}
+                      onClick={() => handleAddRecommendation(prod)}
                       className="rec-add-btn"
                       title="Añadir al carrito"
                     >
