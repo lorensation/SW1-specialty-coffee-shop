@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Shield, Ban, CheckCircle, User as UserIcon } from 'lucide-react';
 import userService from '../../services/userService';
+import ConfirmModal from '../../components/ConfirmModal';
 import './AdminUsers.css';
 
 export default function AdminUsers() {
@@ -8,6 +9,12 @@ export default function AdminUsers() {
     const [loading, setLoading] = useState(true);
     const [filters, setFilters] = useState({
         role: ''
+    });
+    const [modalConfig, setModalConfig] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        onConfirm: null
     });
 
     useEffect(() => {
@@ -30,32 +37,56 @@ export default function AdminUsers() {
 
     const handleRoleChange = async (id, currentRole) => {
         const newRole = currentRole === 'admin' ? 'user' : 'admin';
-        if (!window.confirm(`¿Estás seguro de cambiar el rol de este usuario a ${newRole}?`)) return;
-
-        try {
-            const response = await userService.updateUserRole(id, newRole);
-            if (response.success) {
-                fetchUsers();
+        const roleText = newRole === 'admin' ? 'administrador' : 'usuario básico';
+        
+        setModalConfig({
+            isOpen: true,
+            title: 'Cambiar rol de usuario',
+            message: `¿Estás seguro de cambiar el rol de este usuario a ${roleText}?`,
+            onConfirm: async () => {
+                try {
+                    const response = await userService.updateUserRole(id, newRole);
+                    if (response.success) {
+                        fetchUsers();
+                    }
+                } catch (error) {
+                    console.error('Error updating role:', error);
+                    alert('Error al actualizar el rol');
+                }
+                closeModal();
             }
-        } catch (error) {
-            console.error('Error updating role:', error);
-            alert('Error al actualizar el rol');
-        }
+        });
     };
 
     const handleStatusChange = async (id, isActive) => {
         const action = isActive ? 'suspender' : 'activar';
-        if (!window.confirm(`¿Estás seguro de ${action} a este usuario?`)) return;
-
-        try {
-            const response = await userService.updateUserStatus(id, !isActive);
-            if (response.success) {
-                fetchUsers();
+        
+        setModalConfig({
+            isOpen: true,
+            title: `${action.charAt(0).toUpperCase() + action.slice(1)} usuario`,
+            message: `¿Estás seguro de ${action} a este usuario?`,
+            onConfirm: async () => {
+                try {
+                    const response = await userService.updateUserStatus(id, !isActive);
+                    if (response.success) {
+                        fetchUsers();
+                    }
+                } catch (error) {
+                    console.error('Error updating status:', error);
+                    alert('Error al actualizar el estado');
+                }
+                closeModal();
             }
-        } catch (error) {
-            console.error('Error updating status:', error);
-            alert('Error al actualizar el estado');
-        }
+        });
+    };
+
+    const closeModal = () => {
+        setModalConfig({
+            isOpen: false,
+            title: '',
+            message: '',
+            onConfirm: null
+        });
     };
 
     const handleFilterChange = (e) => {
@@ -160,6 +191,14 @@ export default function AdminUsers() {
                     </table>
                 )}
             </div>
+
+            <ConfirmModal
+                isOpen={modalConfig.isOpen}
+                onClose={closeModal}
+                onConfirm={modalConfig.onConfirm}
+                title={modalConfig.title}
+                message={modalConfig.message}
+            />
         </div>
     );
 }
