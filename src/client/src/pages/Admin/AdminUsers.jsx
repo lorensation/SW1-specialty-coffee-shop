@@ -10,11 +10,15 @@ export default function AdminUsers() {
     const [filters, setFilters] = useState({
         role: ''
     });
-    const [modalConfig, setModalConfig] = useState({
+
+    // Estado para los modales de confirmación
+    const [confirmModal, setConfirmModal] = useState({
         isOpen: false,
         title: '',
         message: '',
-        onConfirm: null
+        variant: 'info',
+        confirmText: 'Confirmar',
+        onConfirm: () => {}
     });
 
     useEffect(() => {
@@ -37,12 +41,16 @@ export default function AdminUsers() {
 
     const handleRoleChange = async (id, currentRole) => {
         const newRole = currentRole === 'admin' ? 'user' : 'admin';
-        const roleText = newRole === 'admin' ? 'administrador' : 'usuario básico';
+        const isPromoting = newRole === 'admin';
         
-        setModalConfig({
+        setConfirmModal({
             isOpen: true,
-            title: 'Cambiar rol de usuario',
-            message: `¿Estás seguro de cambiar el rol de este usuario a ${roleText}?`,
+            title: isPromoting ? 'Promover a Administrador' : 'Degradar a Usuario',
+            message: isPromoting 
+                ? '¿Estás seguro de otorgar privilegios de administrador a este usuario? Tendrá acceso completo al panel de administración.'
+                : '¿Estás seguro de remover los privilegios de administrador a este usuario? Perderá el acceso al panel de administración.',
+            variant: isPromoting ? 'promote' : 'demote',
+            confirmText: isPromoting ? 'Promover' : 'Degradar',
             onConfirm: async () => {
                 try {
                     const response = await userService.updateUserRole(id, newRole);
@@ -51,20 +59,23 @@ export default function AdminUsers() {
                     }
                 } catch (error) {
                     console.error('Error updating role:', error);
-                    alert('Error al actualizar el rol');
                 }
-                closeModal();
             }
         });
     };
 
     const handleStatusChange = async (id, isActive) => {
         const action = isActive ? 'suspender' : 'activar';
+        const isSuspending = isActive;
         
-        setModalConfig({
+        setConfirmModal({
             isOpen: true,
-            title: `${action.charAt(0).toUpperCase() + action.slice(1)} usuario`,
-            message: `¿Estás seguro de ${action} a este usuario?`,
+            title: isSuspending ? 'Suspender Cuenta' : 'Activar Cuenta',
+            message: isSuspending
+                ? '¿Estás seguro de suspender esta cuenta? El usuario no podrá iniciar sesión hasta que sea reactivado.'
+                : '¿Estás seguro de activar esta cuenta? El usuario recuperará el acceso completo a la plataforma.',
+            variant: isSuspending ? 'danger' : 'success',
+            confirmText: isSuspending ? 'Suspender' : 'Activar',
             onConfirm: async () => {
                 try {
                     const response = await userService.updateUserStatus(id, !isActive);
@@ -73,19 +84,19 @@ export default function AdminUsers() {
                     }
                 } catch (error) {
                     console.error('Error updating status:', error);
-                    alert('Error al actualizar el estado');
                 }
-                closeModal();
             }
         });
     };
 
     const closeModal = () => {
-        setModalConfig({
+        setConfirmModal({
             isOpen: false,
             title: '',
             message: '',
-            onConfirm: null
+            variant: 'info',
+            confirmText: 'Confirmar',
+            onConfirm: () => {}
         });
     };
 
@@ -192,12 +203,15 @@ export default function AdminUsers() {
                 )}
             </div>
 
+            {/* Modal de confirmación */}
             <ConfirmModal
-                isOpen={modalConfig.isOpen}
+                isOpen={confirmModal.isOpen}
                 onClose={closeModal}
-                onConfirm={modalConfig.onConfirm}
-                title={modalConfig.title}
-                message={modalConfig.message}
+                onConfirm={confirmModal.onConfirm}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                variant={confirmModal.variant}
+                confirmText={confirmModal.confirmText}
             />
         </div>
     );

@@ -14,7 +14,7 @@ export default function Layout() {
         <NavLink to="/booking">Reservas</NavLink>
         <NavLink to="/feed">Opiniones</NavLink>
         <NavLink to="/account">Mi cuenta</NavLink>
-        <NavLink to="/admin">Admin</NavLink>
+        {user && user.role === 'admin' && <NavLink to="/admin">Admin</NavLink>}
         <NavLink to="/cart">Carrito</NavLink>
       </nav>
       <main className="container"><Outlet /></main>
