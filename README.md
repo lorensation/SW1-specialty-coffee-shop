@@ -117,10 +117,6 @@ SUPABASE_URL=tu_supabase_url
 SUPABASE_ANON_KEY=tu_supabase_anon_key
 SUPABASE_SERVICE_KEY=tu_supabase_service_key
 
-# JWT
-JWT_SECRET=tu_jwt_secret
-JWT_EXPIRES_IN=7d
-
 # Email (Mailjet)
 EMAIL_USER=tu_mailjet_api_key
 EMAIL_PASS=tu_mailjet_secret_key
@@ -265,68 +261,5 @@ Ahora puedes acceder a:
 - **Rate limiting** en endpoints sensibles
 - **Middleware de autorización** por roles
 
----
-
-## 🌐 Información de Despliegue
-
-### Despliegue del Frontend (GitHub Pages)
-
----
-
-## 📁 Estructura del Repositorio
-
-```
-SW1-specialty-coffee-shop/
-│
-├── docs/                          # Carpeta con toda la documentación del proyecto
-│   ├── index.html                 # Build del frontend para GitHub Pages
-│   └── assets/                    # Recursos estáticos del build
-│
-├── src/                           # Código fuente del proyecto
-│   ├── client/                    # Frontend React
-│   │   ├── src/
-│   │   │   ├── components/        # Componentes reutilizables
-│   │   │   ├── pages/             # Páginas de la aplicación
-│   │   │   ├── context/           # Context API (Auth, Cart)
-│   │   │   └── services/          # Servicios de API
-│   │   └── package.json
-│   │
-│   └── server/                    # Backend Node.js/Express
-│       ├── controllers/           # Lógica de negocio
-│       ├── models/                # Modelos de datos
-│       ├── routes/                # Rutas de la API
-│       ├── middlewares/           # Middlewares (auth, validación)
-│       ├── services/              # Servicios (email, sockets)
-│       ├── database/              # Scripts SQL
-│       └── package.json
-│
-└── README.md                      # Este archivo
-```
-
----
-
-## 📄 Licencia
-
-ISC License
-
----
-
-**Proyecto desarrollado para la asignatura de Sistemas Web 1**  
-
-## ⚙️ Información de Ejecución
-
-### Requisitos Previos
-
-- **Node.js** v16 o superior
-- **npm** o **yarn**
-- **Cuenta de Supabase** (base de datos)
-- **Cuenta de Mailjet** (envío de emails)
-
-
-## 🐛 Reportar Problemas
-
-Si encuentras algún bug o tienes sugerencias, por favor abre un issue en el repositorio.
-
----
 
 **Desarrollado con ☕ y ❤️ por el equipo de Royal Coffee**
